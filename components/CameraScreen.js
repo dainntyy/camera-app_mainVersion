@@ -1,0 +1,385 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react'; 
+import { View, TouchableOpacity, Image, StyleSheet, Text, Dimensions } from 'react-native';
+import { Camera, CameraType, CameraView } from 'expo-camera';
+import { FlashMode, useCameraPermissions } from 'expo-camera';
+import * as ImageManipulator from 'expo-image-manipulator';
+import * as MediaLibrary from 'expo-media-library';
+import { useMediaLibraryPermissions } from 'expo-media-library';
+import * as ImagePicker from 'expo-image-picker';
+//import ImageResizer from 'react-native-image-resizer';
+// import * as ImageEditor from "@react-native-community/image-editor";
+//import { launchImageLibrary } from 'react-native-image-picker';
+import Slider from '@react-native-community/slider';
+import flipCameraIcon from './icons/flip_camera.png';
+import FlashOnIcon from './icons/flash_icon.png';
+import FlashOffIcon from './icons/flash_off.png';
+import RefIcon from './icons/ref_icon.png';
+import RefOffIcon from './icons/ref_off_icon.png';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+
+export default function CameraScreen({ route }) {
+    const navigation = useNavigation();
+    const [type, setType] = useState('back'); // Резервне значення 'back'
+    const [permission, requestPermission] = useCameraPermissions();
+    const [flashMode, setFlashMode] = useState('off');
+    const [mediaLibraryPermission, requestMediaLibraryPermission] = MediaLibrary.usePermissions();
+    const [photoUri, setPhotoUri] = useState(null);
+    const [lastPhotoUri, setLastPhotoUri] = useState(null);
+    const [referencePhoto, setReferencePhoto] = useState(route.params?.referencePhotoUri || null);
+    const [isFrontCamera, setIsFrontCamera] = useState(type === 'front');
+    const [opacity, setOpacity] = useState(0.3);
+    const cameraRef = useRef(null);
+    const [windowWidth, setWindowWidth] = useState(0);
+    const [windowHeight, setWindowHeight] = useState(0);
+
+    useEffect(() => {
+        const { width, height } = Dimensions.get('window');
+        setWindowWidth(width);
+        setWindowHeight(height);
+    }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (route.params?.referencePhotoUri) {
+                setReferencePhoto(route.params.referencePhotoUri);
+            }
+        }, [route.params?.referencePhotoUri])
+    );
+
+    useEffect(() => {
+        const getPermissionsAndAssets = async () => {
+            if (!permission?.granted) {
+                const newPermission = await requestPermission();
+                if (!newPermission.granted) return;
+            }
+
+            if (!mediaLibraryPermission?.granted) {
+                const newMediaPermission = await requestMediaLibraryPermission();
+                if (!newMediaPermission.granted) return;
+            }
+
+            const media = await MediaLibrary.getAssetsAsync({
+                sortBy: MediaLibrary.SortBy.creationTime,
+                mediaType: 'photo',
+                first: 1,
+            });
+
+            if (media.assets.length > 0) {
+                const lastAsset = media.assets[0];
+                
+                if (lastAsset.uri.startsWith('ph://')) {
+                    const assetInfo = await MediaLibrary.getAssetInfoAsync(lastAsset.id);
+                    if (assetInfo.localUri) {
+        setLastPhotoUri(assetInfo.localUri);
+    }
+                } else {
+                    setLastPhotoUri(lastAsset.uri);
+                }
+            }
+        };
+
+        getPermissionsAndAssets();
+    }, [permission, mediaLibraryPermission]);
+
+    useEffect(() => {
+        setIsFrontCamera(type === 'front');
+    }, [type]);
+
+    if (!permission?.granted) {
+        return (
+            <View style={styles.container}>
+                <Text style={{ textAlign: 'center' }}>We need your permission to show the camera</Text>
+                <TouchableOpacity onPress={requestPermission} style={styles.permissionButton}>
+                    <Text style={styles.permissionButtonText}>Grant Permission</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
+    if (!mediaLibraryPermission?.granted) {
+        return (
+            <View style={styles.container}>
+                <Text style={{ textAlign: 'center' }}>We need your permission to access media library</Text>
+                <TouchableOpacity onPress={requestMediaLibraryPermission} style={styles.permissionButton}>
+                    <Text style={styles.permissionButtonText}>Grant Media Library Permission</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
+
+const takePicture = async () => {
+  if (cameraRef.current) {
+    try {
+      // Зробити фото
+      const photo = await cameraRef.current.takePictureAsync();
+
+      let finalUri = photo.uri;
+
+      // Якщо використовується фронтальна камера, віддзеркалити фото
+      if (type === 'front') {
+        const manipulatedImage = await ImageManipulator.manipulateAsync(
+          photo.uri,
+          [{ flip: ImageManipulator.FlipType.Horizontal }], // Дзеркальне відображення
+          { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
+        );
+        finalUri = manipulatedImage.uri;
+      }
+
+      setPhotoUri(finalUri);
+      await MediaLibrary.saveToLibraryAsync(finalUri);
+      setLastPhotoUri(finalUri);
+    } catch (error) {
+      console.error('Error taking picture:', error);
+    }
+  }
+};
+
+
+    const pickReferenceImage = () => {
+        navigation.navigate('ReferenceImageScreen');
+    };
+
+    const clearReferencePhoto = () => {
+        setReferencePhoto(null);
+    };
+
+    const openGallery = async () => {
+    try {
+        // Request media library permissions
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (!permissionResult.granted) {
+            alert("Permission to access media library is required!");
+            return;
+        }
+
+        // Launch the image picker
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'], // Updated to use ImagePicker.MediaType
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            // Process the selected image
+            console.log(result.assets[0].uri);
+        }
+    } catch (error) {
+        console.error('Error picking image:', error);
+    }
+};
+
+    function toggleCameraType() {
+        setType(current => (current === 'back' ? 'front' : 'back'));
+    }
+
+    function toggleFlash() {
+    setFlashMode((prevFlashMode) => {
+        switch (prevFlashMode) {
+        case 'off':
+            return 'on';
+        case 'on':
+            return 'auto';
+        default:
+            return 'off';
+        }
+        });
+    }
+
+    return (
+        <View style={styles.container}>
+            <CameraView
+                style={styles.camera}
+                facing={type}
+                ref={cameraRef}
+                flash={flashMode}
+            >
+                <View style={styles.overlayContainer}>
+                    {referencePhoto ? (
+                        <Image
+                            source={{ uri: referencePhoto }}
+                            style={[
+                                styles.overlayImage,
+                                {
+                                    opacity: opacity,
+                                    width: windowWidth,
+                                    height: windowHeight,
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                },
+                            ]}
+                        />
+                    ) : (
+                        <Text style={styles.overlayText}>Select an image as reference</Text>
+                    )}
+                </View>
+                <View style={styles.header} />
+                <View style={styles.topControls}>
+                    <TouchableOpacity testID="toggle-camera-button" onPress={toggleCameraType} style={styles.iconButton}>
+                        <Image source={flipCameraIcon} style={styles.iconImage} />
+                    </TouchableOpacity>
+                    <TouchableOpacity testID="toggle-flash-button" onPress={toggleFlash} style={styles.iconButton}>
+                        <Image source={flashMode === 'off' ? FlashOffIcon : FlashOnIcon} style={styles.iconImage} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={clearReferencePhoto} style={styles.iconButton}>
+                        <Image source={RefOffIcon} style={styles.iconImage} />
+                    </TouchableOpacity>
+                </View>
+                <View style={styles.bottomControlsContainer}>
+                    <View style={styles.bottomControls}>
+                        <TouchableOpacity onPress={pickReferenceImage} style={styles.iconButton}>
+                            <Image source={RefIcon} style={styles.iconImage} />
+                        </TouchableOpacity>
+                        <TouchableOpacity testID="capture-button" onPress={takePicture} style={styles.captureButton}>
+                            <View style={styles.captureCircle} />
+                        </TouchableOpacity>
+                        <TouchableOpacity testID="open-gallery-button" onPress={openGallery} style={styles.iconButton}>
+                            {lastPhotoUri ? (
+                                <Image source={{ uri: lastPhotoUri }} style={styles.galleryImage} />
+                            ) : (
+                                <Text style={styles.iconPlaceholder}>Gallery</Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                    {referencePhoto && (
+                        <View style={styles.sliderContainer}>
+                            <Text style={styles.sliderLabel}>Opacity</Text>
+                            <Slider
+                                style={styles.slider}
+                                minimumValue={0}
+                                maximumValue={1}
+                                value={opacity}
+                                onValueChange={setOpacity}
+                            />
+                        </View>
+                    )}
+                    <View style={styles.footer} />
+                </View>
+            </CameraView>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    camera: {
+        flex: 1,
+    },
+    overlayContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+},
+
+    overlayImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+},
+
+    overlayText: {
+        fontSize: 18,
+        color: 'transparent',
+        padding: 10,
+        borderRadius: 5,
+    },
+    header: {
+        top: 0,
+        left: 0,
+        right: 0,
+        position: 'absolute',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        height: 100,
+    }, 
+    topControls: {
+        position: 'absolute',
+        top: 100,
+        left: 10,
+        right: 10,
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+    },
+    bottomControlsContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 150,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1,
+    },
+    footer: {
+        ...StyleSheet.absoluteFillObject, // Зробити фон абсолютним в межах контейнера
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Напівпрозорий фон
+        zIndex: -1,
+    },
+    bottomControls: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        width: '100%',
+        position: 'absolute', // Позиціонування кнопок поверх фону
+        bottom: 30,
+    },
+    iconButton: {
+        padding: 10,
+    },
+    captureButton: {
+        alignSelf: 'center',
+    },
+    captureCircle: {
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        backgroundColor: 'white',
+        borderWidth: 5,
+        borderColor: 'gray',
+    },
+    galleryImage: {
+        width: 50,
+        height: 50,
+        borderRadius: 10,
+    },
+    previewImage: {
+        width: 100,
+        height: 100,
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+    },
+    iconPlaceholder: {
+        fontSize: 12,
+        color: 'white',
+    },
+    iconImage: {
+        width: 40,
+        height: 40,
+    },
+    permissionButton: {
+        backgroundColor: 'blue',
+        padding: 10,
+        borderRadius: 5,
+    },
+    permissionButtonText: {
+        color: 'white',
+        textAlign: 'center',
+    },
+    sliderContainer: {
+        width: '100%',
+        padding: 10,
+        alignItems: 'center',
+        bottom: 100,
+    },
+    sliderLabel: {
+        color: 'white',
+        marginBottom: 5,
+    },
+    slider: {
+        width: '80%',
+    },
+});
