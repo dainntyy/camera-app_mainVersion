@@ -18,7 +18,7 @@ import RefOffIcon from './icons/ref_off_icon.png';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 export default function CameraScreen({ route }) {
-    // const navigation = useNavigation();
+    const navigation = useNavigation();
     const [type, setType] = useState('back'); // Резервне значення 'back'
     const [permission, requestPermission] = useCameraPermissions();
     const [flashMode, setFlashMode] = useState('off');

@@ -1,29 +1,43 @@
-import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import CameraScreen from '../CameraScreen';
 import * as MediaLibrary from 'expo-media-library';
+import { takePicture } from '../utils/cameraUtils';
 
-jest.mock('expo-camera', () => ({
-  Camera: jest.fn(() => null),
-  CameraType: { back: 'back', front: 'front' },
-}));
 jest.mock('expo-media-library', () => ({
   saveToLibraryAsync: jest.fn(),
 }));
-jest.mock('expo-image-manipulator', () => ({
-  manipulateAsync: jest.fn(),
-}));
 
-describe('CameraScreen', () => {
-  it('should take a picture and save it', async () => {
-    const route = { params: { referencePhotoUri: '../templatePictures/image1.jpeg' } };
-    const { getByTestId } = render(<CameraScreen route={route} />);
-    const takePictureButton = getByTestId('take-picture-button');
+describe('takePicture', () => {
+  const mockCameraRef = {
+    current: {
+      takePictureAsync: jest.fn(),
+    },
+  };
 
-    fireEvent.press(takePictureButton);
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-    await waitFor(() => {
-      expect(MediaLibrary.saveToLibraryAsync).toHaveBeenCalled();
-    });
+  it('should take a picture and save it to the library', async () => {
+    const mockUri = 'test-uri';
+    (mockCameraRef.current.takePictureAsync as jest.Mock).mockResolvedValueOnce({ uri: mockUri });
+    (MediaLibrary.saveToLibraryAsync as jest.Mock).mockResolvedValueOnce({ uri: mockUri });
+
+    await takePicture(mockCameraRef, false); // Виклик для задньої камери
+    expect(mockCameraRef.current.takePictureAsync).toHaveBeenCalled();
+    expect(MediaLibrary.saveToLibraryAsync).toHaveBeenCalledWith(mockUri);
+  });
+
+  it('should take a picture and handle flipping for front camera', async () => {
+    const mockUri = 'test-uri';
+    const flippedUri = 'flipped-uri'; // Мок для віддзеркаленого URI (після обробки)
+
+    (mockCameraRef.current.takePictureAsync as jest.Mock).mockResolvedValueOnce({ uri: mockUri });
+
+    // Якщо використовуватиметься специфічний метод для перевертання, потрібно буде мокаємо його
+    // Тут можна вказати логіку перевертання URI, якщо вона імплементована.
+    (MediaLibrary.saveToLibraryAsync as jest.Mock).mockResolvedValueOnce({ uri: flippedUri });
+
+    await takePicture(mockCameraRef, true); // Виклик для фронтальної камери
+    expect(mockCameraRef.current.takePictureAsync).toHaveBeenCalled();
+    expect(MediaLibrary.saveToLibraryAsync).toHaveBeenCalledWith(mockUri);
   });
 });

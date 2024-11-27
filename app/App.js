@@ -31,7 +31,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {firstLaunch ? (
           // Якщо це перший запуск, показуємо слайдер
@@ -46,6 +46,6 @@ export default function App() {
         {/* Новий екран для вибору референсного зображення */}
         <Stack.Screen name="ReferenceImageScreen" component={ReferenceImageScreen} />
       </Stack.Navigator>
-    </>
+    </NavigationContainer>
   );
 }
