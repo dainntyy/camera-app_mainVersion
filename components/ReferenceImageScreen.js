@@ -49,7 +49,7 @@ export default function ReferenceImageScreen() {
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: false,
             aspect: [4, 3],
             quality: 1,
@@ -75,22 +75,28 @@ export default function ReferenceImageScreen() {
     if (!hasPermission) {
         return (
             <View style={styles.container}>
-                <Text style={styles.permissionText}>We need permission to access your photos.</Text>
+                <Text style={styles.permissionText} testID="permission-text">
+                    We need permission to access your photos.
+                </Text>
             </View>
         );
     }
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Select Reference Image</Text>
+            <Text style={styles.title} testID="screen-title">Select Reference Image</Text>
 
             <View style={styles.templateSection}>
-                <Text style={styles.sectionTitle}>Template Images</Text>
+                <Text style={styles.sectionTitle} testID="template-section-title">Template Images</Text>
                 <FlatList
                     horizontal
                     data={templateImages}
-                    renderItem={({ item }) => (
-                        <TouchableOpacity onPress={() => setSelectedImage(item)} style={styles.imageContainer}>
+                    renderItem={({ item, index }) => (
+                        <TouchableOpacity
+                            onPress={() => setSelectedImage(item)}
+                            style={styles.imageContainer}
+                            testID={`template-image-${index}`}
+                        >
                             <Image source={item} style={styles.templateImage} />
                         </TouchableOpacity>
                     )}
@@ -99,13 +105,14 @@ export default function ReferenceImageScreen() {
             </View>
 
             <View style={styles.gallerySection}>
-                <Text style={styles.sectionTitle}>Your Gallery</Text>
+                <Text style={styles.sectionTitle} testID="gallery-section-title">Your Gallery</Text>
                 <FlatList
                     data={galleryImages}
-                    renderItem={({ item }) => (
+                    renderItem={({ item, index }) => (
                         <TouchableOpacity
                             onPress={() => setSelectedImage(item)}
                             style={styles.imageContainer}
+                            testID={`gallery-image-${index}`}
                         >
                             <Image source={{ uri: item }} style={styles.galleryImage} />
                         </TouchableOpacity>
@@ -117,16 +124,23 @@ export default function ReferenceImageScreen() {
 
             {selectedImage && (
                 <View style={styles.previewContainer}>
-                    <Image source={typeof selectedImage === 'string' ? { uri: selectedImage } : selectedImage} style={styles.previewImage} />
+                    <Image
+                        source={typeof selectedImage === 'string' ? { uri: selectedImage } : selectedImage}
+                        style={styles.previewImage}
+                        testID="preview-image"
+                    />
 
-                    <TouchableOpacity onPress={() => handleConfirmSelection(selectedImage)} style={styles.confirmButton}>
+                    <TouchableOpacity
+                        onPress={() => handleConfirmSelection(selectedImage)}
+                        style={styles.confirmButton}
+                        testID="confirm-button"
+                    >
                         <Text style={styles.buttonText}>Confirm Selection</Text>
                     </TouchableOpacity>
-
                 </View>
             )}
 
-            <TouchableOpacity onPress={pickImage} style={styles.button}>
+            <TouchableOpacity onPress={pickImage} style={styles.button} testID="open-gallery-button">
                 <Text style={styles.buttonText}>Open Gallery</Text>
             </TouchableOpacity>
         </View>
