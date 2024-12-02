@@ -193,14 +193,16 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     confirmButton: {
-        backgroundColor: '#2196F3',
+        backgroundColor: '#083e68',
         padding: 10,
         marginBottom: 20,
+        height: 50
     },
     button: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#083e68',
         padding: 10,
         marginTop: 20,
+        height: 50
     },
     buttonText: {
         color: '#fff',

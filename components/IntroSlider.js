@@ -7,25 +7,25 @@ const slides = [
     key: '1',
     title: 'Welcome to Camera App!',
     text: 'This app helps you take photos with alignment features.',
-    backgroundColor: '#59b2ab',
+    backgroundColor: '#083e68',
   },
   {
     key: '2',
     title: 'Select Reference Photo',
     text: 'You can select a reference photo from your gallery to overlay on the camera.',
-    backgroundColor: '#febe29',
+    backgroundColor: '#114f7e',
   },
   {
     key: '3',
     title: 'Use Camera Features',
     text: 'Flip between the front and back cameras, and enable/disable the flash.',
-    backgroundColor: '#22bcb5',
+    backgroundColor: '#1363a0',
   },
   {
     key: '4',
     title: 'Capture and Save',
     text: 'Take photos and save them to your gallery easily!',
-    backgroundColor: '#3395ff',
+    backgroundColor: '#2c71a5',
   },
 ];
 

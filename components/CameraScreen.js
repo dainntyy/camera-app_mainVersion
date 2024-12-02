@@ -210,31 +210,56 @@ const takePicture = async () => {
                                 },
                             ]}
                         />
-                    ) : (
-                        <Text style={styles.overlayText}>Select an image as reference</Text>
-                    )}
+                    ): null}
                 </View>
                 <View style={styles.header} />
                 <View style={styles.topControls}>
-                    <TouchableOpacity testID="toggle-camera-button" onPress={toggleCameraType} style={styles.iconButton}>
-                        <Image source={flipCameraIcon} style={styles.iconImage} />
-                    </TouchableOpacity>
-                    <TouchableOpacity testID="toggle-flash-button" onPress={toggleFlash} style={styles.iconButton}>
-                        <Image source={flashMode === 'off' ? FlashOffIcon : FlashOnIcon} style={styles.iconImage} />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={clearReferencePhoto} style={styles.iconButton}>
-                        <Image source={RefOffIcon} style={styles.iconImage} />
-                    </TouchableOpacity>
-                </View>
+    <TouchableOpacity
+        testID="toggle-camera-button"
+        onPress={toggleCameraType}
+        style={styles.iconButton}
+        accessibilityLabel="Toggle camera"
+    >
+        <Image
+            source={flipCameraIcon}
+            style={styles.iconImage}
+            accessible={false} // Image is decorative; label provided on TouchableOpacity
+        />
+    </TouchableOpacity>
+    <TouchableOpacity
+        testID="toggle-flash-button"
+        onPress={toggleFlash}
+        style={styles.iconButton}
+        accessibilityLabel={`Flash ${flashMode === 'off' ? 'off' : 'on'}`}
+    >
+        <Image
+            source={flashMode === 'off' ? FlashOffIcon : FlashOnIcon}
+            style={styles.iconImage}
+            accessible={false} // Image is decorative; label provided on TouchableOpacity
+        />
+    </TouchableOpacity>
+    <TouchableOpacity
+        onPress={clearReferencePhoto}
+        style={styles.iconButton}
+        accessibilityLabel="Clear reference photo"
+    >
+        <Image
+            source={RefOffIcon}
+            style={styles.iconImage}
+            accessible={false} // Image is decorative; label provided on TouchableOpacity
+        />
+    </TouchableOpacity>
+</View>
+
                 <View style={styles.bottomControlsContainer}>
                     <View style={styles.bottomControls}>
-                        <TouchableOpacity onPress={pickReferenceImage} style={styles.iconButton}>
+                        <TouchableOpacity onPress={pickReferenceImage} style={styles.iconButton} accessibilityLabel="Select reference photo">
                             <Image source={RefIcon} style={styles.iconImage} />
                         </TouchableOpacity>
-                        <TouchableOpacity testID="capture-button" onPress={takePicture} style={styles.captureButton}>
+                        <TouchableOpacity testID="capture-button" onPress={takePicture} style={styles.captureButton} accessibilityLabel="Capture photo">
                             <View style={styles.captureCircle} />
                         </TouchableOpacity>
-                        <TouchableOpacity testID="open-gallery-button" onPress={openGallery} style={styles.iconButton}>
+                        <TouchableOpacity testID="open-gallery-button" onPress={openGallery} style={styles.iconButton} accessibilityLabel="Open Galery">
                             {lastPhotoUri ? (
                                 <Image source={{ uri: lastPhotoUri }} style={styles.galleryImage} />
                             ) : (

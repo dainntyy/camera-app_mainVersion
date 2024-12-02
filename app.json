@@ -19,7 +19,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.dainntyy.cameraapp"
     },
     "web": {
       "bundler": "metro",
@@ -32,6 +33,12 @@
     "experiments": {
       "typedRoutes": true,
       "newArchEnabled": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b8c6fac3-9d72-4a05-986c-7b9bb17adaf2"
+      }
+    },
+    "owner": "dainntyy"
   }
 }
