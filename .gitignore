@@ -1,14 +1,40 @@
 node_modules/
 .expo/
 dist/
+coverage/
+build/
+e2e/
+--force/
+%ProgramData%/
 npm-debug.*
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
+*.tsbuildinfo
 *.orig.*
+eas.json
 web-build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+expo-error.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+expo-env.d.ts
+
+#detox test artifacts
+.detoxrc.js
+detox.config.js
+detox.setup.js
 
 # macOS
 .DS_Store
@@ -18,3 +44,6 @@ web-build/
 
 expo-env.d.ts
 # @end expo-cli
+
+# Ignore temporary scripts
+scripts/
