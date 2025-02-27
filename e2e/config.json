@@ -1,5 +1,0 @@
-{
-  "preset": "jest-expo",
-  "setupFilesAfterEnv": ["./setup.js"],
-  "testEnvironment": "node"
-}
