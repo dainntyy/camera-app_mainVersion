@@ -4,7 +4,7 @@ import { PixelRatio, Dimensions, ImageEditor } from 'react-native';
 
 export const takePicture = async (cameraRef, isFrontCamera) => {
   if (!cameraRef.current) {
-    throw new Error("Camera reference is not available.");
+    throw new Error('Camera reference is not available.');
   }
 
   // Отримання зображення з камери
@@ -17,8 +17,8 @@ export const takePicture = async (cameraRef, isFrontCamera) => {
 
   // Імітація перевертання зображення для фронтальної камери (з використанням ImageEditor, якщо це потрібно)
   if (isFrontCamera) {
-    const screenWidth = Dimensions.get("window").width * PixelRatio.get();
-    const screenHeight = Dimensions.get("window").height * PixelRatio.get();
+    const screenWidth = Dimensions.get('window').width * PixelRatio.get();
+    const screenHeight = Dimensions.get('window').height * PixelRatio.get();
 
     try {
       const flippedImage = await ImageEditor.cropImage(finalUri, {
@@ -30,7 +30,7 @@ export const takePicture = async (cameraRef, isFrontCamera) => {
 
       finalUri = flippedImage;
     } catch (err) {
-      console.error("Error flipping image:", err);
+      console.error('Error flipping image:', err);
     }
   }
 

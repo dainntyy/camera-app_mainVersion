@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Для збереження стану
+
 import CameraScreen from '../components/CameraScreen';
 import IntroSlider from '../components/IntroSlider';
-import ReferenceImageScreen from '../components/ReferenceImageScreen';  // новий екран
-import AsyncStorage from '@react-native-async-storage/async-storage';  // Для збереження стану
+import ReferenceImageScreen from '../components/ReferenceImageScreen'; // новий екран
 
 const Stack = createStackNavigator();
 
