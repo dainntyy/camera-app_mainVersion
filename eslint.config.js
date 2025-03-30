@@ -7,6 +7,7 @@ import configPrettier from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
 import security from 'eslint-plugin-security';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
+import promise from 'eslint-plugin-promise';
 
 react.configs.recommended.plugins = { react };
 react.configs.recommended.languageOptions = {
@@ -18,7 +19,23 @@ export default [
   js.configs.recommended,
   react.configs.recommended,
   {
-    ignores: ['node_modules/', 'e2e/', 'build/', 'expo/'],
+    ignores: [
+      'node_modules/',
+      'e2e/',
+      'build/',
+      'expo/',
+      '__mocks__/',
+      'babel.config.js',
+      'detox.config.js',
+      'detox.setup.js',
+      'eas.json',
+      'package.json',
+      'package-lock.json',
+      'jest.config.js',
+      'tsconfig.js',
+    ],
+  },
+  {
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -31,6 +48,7 @@ export default [
       import: importPlugin,
       security,
       'jsx-a11y': jsxA11y,
+      promise,
     },
     rules: {
       // 1️⃣ Стиль коду (Prettier + базові ESLint правила)
@@ -42,7 +60,7 @@ export default [
       'security/detect-eval-with-expression': 'error', // Виявляє небезпечні eval()
       'security/detect-non-literal-require': 'warn', // Перевіряє імпорти
       'security/detect-object-injection': 'warn', // Виявляє небезпечні об'єктні доступи
-      'no-unhandled-promises': 'error', // Обов’язкова обробка промісів
+      'promise/catch-or-return': 'error', // Обов’язкова обробка промісів
 
       // 3️⃣ Продуктивність
       'react-hooks/rules-of-hooks': 'error', // Виявляє неправильне використання хуків
