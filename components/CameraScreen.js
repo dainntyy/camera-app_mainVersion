@@ -185,6 +185,14 @@ export default function CameraScreen({ route }) {
     });
   }
 
+  CameraScreen.propTypes = {
+    route: PropTypes.shape({
+      params: PropTypes.shape({
+        referencePhotoUri: PropTypes.string,
+      }),
+    }).isRequired,
+  };
+
   return (
     <View style={styles.container}>
       <CameraView style={styles.camera} facing={type} ref={cameraRef} flash={flashMode}>
