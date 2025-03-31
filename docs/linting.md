@@ -87,9 +87,9 @@ npx husky install
 This will create a `.husky/` directory.
 
 ### Adding Pre-commit Hook
-After recent updates pre-commit hooks are in need to be added by hand.
+After last updates pre-commit hooks are in need to be added by hand.
 ```sh
-npm run lint
+npx lint-staged || true
 ```
 
 ### Configuring lint-staged in package.json
@@ -136,18 +136,6 @@ Create `tsconfig.json`:
     "skipLibCheck": true
   }
 }
-```
-
-### **mypy (for Python)**
-```sh
-pip install mypy
-```
-
-Create `mypy.ini`:
-```ini
-[mypy]
-ignore_missing_imports = True
-strict = True
 ```
 
 ---
