@@ -96,6 +96,7 @@ export default function CameraScreen({ route }) {
       </View>
     );
   }
+  // TODO: Remove inline styles
 
   if (!mediaLibraryPermission?.granted) {
     return (
