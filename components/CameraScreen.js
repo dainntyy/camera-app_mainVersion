@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { View, TouchableOpacity, Image, StyleSheet, Text, Dimensions } from 'react-native';
-import { Camera, CameraType, CameraView } from 'expo-camera';
-import { FlashMode, useCameraPermissions } from 'expo-camera';
+import { CameraView } from 'expo-camera';
+import { useCameraPermissions } from 'expo-camera';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as MediaLibrary from 'expo-media-library';
-import { useMediaLibraryPermissions } from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
+import PropTypes from 'prop-types';
 //import ImageResizer from 'react-native-image-resizer';
 // import * as ImageEditor from "@react-native-community/image-editor";
 //import { launchImageLibrary } from 'react-native-image-picker';
@@ -89,7 +89,7 @@ export default function CameraScreen({ route }) {
   if (!permission?.granted) {
     return (
       <View style={styles.container}>
-        <Text style={{ textAlign: 'center' }}>We need your permission to show the camera</Text>
+        <Text>We need your permission to show the camera</Text>
         <TouchableOpacity onPress={requestPermission} style={styles.permissionButton}>
           <Text style={styles.permissionButtonText}>Grant Permission</Text>
         </TouchableOpacity>
@@ -127,7 +127,7 @@ export default function CameraScreen({ route }) {
         }
 
         setPhotoUri(finalUri);
-        await MediaLibrary.saveToLibraryAsync(finalUri);
+        await MediaLibrary.saveToLibraryAsync(photoUri);
         setLastPhotoUri(finalUri);
       } catch (error) {
         console.error('Error taking picture:', error);
@@ -320,13 +320,6 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
   },
-
-  overlayText: {
-    fontSize: 18,
-    color: 'transparent',
-    padding: 10,
-    borderRadius: 5,
-  },
   header: {
     top: 0,
     left: 0,
@@ -385,13 +378,6 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 10,
-  },
-  previewImage: {
-    width: 100,
-    height: 100,
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
   },
   iconPlaceholder: {
     fontSize: 12,

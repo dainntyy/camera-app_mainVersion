@@ -47,3 +47,8 @@ expo-env.d.ts
 
 # Ignore temporary scripts
 scripts/
+
+eslint-report-after-60.json
+eslint-report-after-75.json
+eslint-report-after-89.json
+eslint-report-before.json

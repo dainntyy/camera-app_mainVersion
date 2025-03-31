@@ -1,4 +1,3 @@
-import { Camera } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import { PixelRatio, Dimensions, ImageEditor } from 'react-native';
 

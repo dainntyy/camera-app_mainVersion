@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
+import PropTypes from 'prop-types'; // Додаємо імпорт PropTypes
 
 const slides = [
   {
@@ -31,7 +32,9 @@ const slides = [
 
 export default function IntroSlider({ onDone }) {
   const handleDone = () => {
-    onDone(); // Викликаємо пропс для завершення слайдера
+    if (onDone) {
+      onDone(); // Викликаємо пропс для завершення слайдера
+    }
   };
 
   return (
@@ -44,6 +47,10 @@ export default function IntroSlider({ onDone }) {
     />
   );
 }
+
+IntroSlider.propTypes = {
+  onDone: PropTypes.func.isRequired, // Додаємо перевірку PropTypes
+};
 
 const renderItem = ({ item }) => {
   return (

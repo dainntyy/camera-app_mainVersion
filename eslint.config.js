@@ -8,6 +8,7 @@ import importPlugin from 'eslint-plugin-import';
 import security from 'eslint-plugin-security';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import promise from 'eslint-plugin-promise';
+import globals from 'globals';
 
 react.configs.recommended.plugins = { react };
 react.configs.recommended.languageOptions = {
@@ -39,6 +40,9 @@ export default [
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
+      globals: {
+        ...globals.node,
+      },
     },
     plugins: {
       react,
@@ -51,6 +55,7 @@ export default [
       promise,
     },
     rules: {
+      // 'no-undef': 'off',
       // 1️⃣ Стиль коду (Prettier + базові ESLint правила)
       'prettier/prettier': 'error',
       'import/order': ['error', { 'newlines-between': 'always' }],
