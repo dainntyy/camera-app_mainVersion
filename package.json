@@ -102,10 +102,7 @@
     "typescript": "~5.3.3"
   },
   "lint-staged": {
-    "*.js": "eslint --fix",
-    "*.jsx": "eslint --fix",
-    "*.ts": "eslint --fix",
-    "*.tsx": "eslint --fix"
+    "**/*.{js,jsx,ts,tsx}": "eslint --fix"
   },
   "private": true,
   "detox": {
