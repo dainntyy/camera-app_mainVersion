@@ -1,4 +1,4 @@
-# Linting Configuration for Camera App
+# Linting Configuration for Camera App 
 
 ## Chosen Linter and Justification
 
@@ -68,6 +68,89 @@ To automatically fix fixable issues, run:
 ```sh
 npx eslint . --fix
 ```
+
 ---
+
+## Git Hooks
+
+To automatically run ESLint before committing, this app is using `husky` and `lint-staged`.
+
+### Installing Dependencies
+```sh
+npm install --save-dev husky lint-staged
+```
+
+### Initializing Husky
+```sh
+npx husky install
+```
+This will create a `.husky/` directory.
+
+### Adding Pre-commit Hook
+After recent updates pre-commit hooks are in need to be added by hand.
+```sh
+npm run lint
+```
+
+### Configuring lint-staged in package.json
+Add the following section:
+```json
+"lint-staged": {
+    "**/*.{js,jsx,ts,tsx}": "eslint --fix"
+  }
+```
+
+Now, before each commit, ESLint will automatically fix errors in JavaScript/TypeScript files.
+
+---
+
+## Integration with Build Process
+
+To ensure ESLint runs before the build, update `package.json`:
+```json
+"scripts": {
+  "build": "npm run lint && expo build",
+  "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+}
+```
+
+Now, before building the project, ESLint will check for issues.
+
+---
+
+## Static Typing
+
+### **TypeScript (for JavaScript/React)**
+```sh
+npm install --save-dev typescript @types/react @types/react-native
+```
+
+Create `tsconfig.json`:
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "jsx": "react-native",
+    "allowJs": true,
+    "skipLibCheck": true
+  }
+}
+```
+
+### **mypy (for Python)**
+```sh
+pip install mypy
+```
+
+Create `mypy.ini`:
+```ini
+[mypy]
+ignore_missing_imports = True
+strict = True
+```
+
+---
+
 Following these guidelines will ensure better maintainability, security, and performance for the Camera App. 🚀
 
