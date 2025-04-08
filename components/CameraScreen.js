@@ -18,6 +18,17 @@ import FlashOffIcon from './icons/flash_off.png';
 import RefIcon from './icons/ref_icon.png';
 import RefOffIcon from './icons/ref_off_icon.png';
 
+/**
+ * CameraScreen is a React component that provides a custom camera interface
+ * with support for flash, switching cameras, overlays, and saving photos
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.route - React Navigation route object
+ * @param {Object} props.route.params - Parameters passed to this screen
+ * @param {string} [props.route.params.referencePhotoUri] - URI of the reference image to overlay
+ * @returns {React.ReactElement}
+ */
+
 export default function CameraScreen({ route }) {
   const navigation = useNavigation();
   const [type, setType] = useState('back'); // Резервне значення 'back'
@@ -109,6 +120,21 @@ export default function CameraScreen({ route }) {
     );
   }
 
+  /**
+
+    Captures a photo using the current camera reference.
+
+    If the front camera is active, the image is mirrored.
+
+    The photo is saved to the media library and updated in the component state.
+
+    @async
+
+    @function
+
+    @returns {Promise<void>}
+*/
+
   const takePicture = async () => {
     if (cameraRef.current) {
       try {
@@ -136,13 +162,35 @@ export default function CameraScreen({ route }) {
     }
   };
 
+  /**
+   * Navigates to the ReferenceImageScreen where user can select a reference image.
+   * @function
+   * @returns {void}
+   */
   const pickReferenceImage = () => {
     navigation.navigate('ReferenceImageScreen');
   };
-
+  /**
+   * Clears the currently set reference photo.
+   *
+   * @function
+   * @returns {void}
+   */
   const clearReferencePhoto = () => {
     setReferencePhoto(null);
   };
+  /**
+
+    Opens the gallery picker allowing the user to select an image from the media library.
+
+    Logs the selected image URI or shows an alert if permission is not granted.
+
+    @async
+
+    @function
+
+    @returns {Promise<void>} 
+  */
 
   const openGallery = async () => {
     try {
@@ -169,10 +217,26 @@ export default function CameraScreen({ route }) {
     }
   };
 
+  /**
+
+    Toggles between front and back cameras.
+
+    Updates internal camera type state accordingly.
+
+    @function
+
+    @returns {void} 
+  */
+
   function toggleCameraType() {
     setType(current => (current === 'back' ? 'front' : 'back'));
   }
-
+  /**
+   * Toggles between different flash modes: 'off' → 'on' → 'auto' → 'off'.
+   *
+   * @function
+   * @returns {void}
+   */
   function toggleFlash() {
     setFlashMode(prevFlashMode => {
       switch (prevFlashMode) {

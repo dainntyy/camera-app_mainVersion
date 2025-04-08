@@ -37,3 +37,24 @@ Ensure you have the following installed:
 - Toggle between front and back cameras.
 - Use the overlay feature to align your shot.
 - Access saved images in the device gallery.
+
+## Documentation Guidelines
+
+This project uses [JSDoc](https://jsdoc.app/) for inline documentation of JavaScript functions and components.
+
+### How to Document
+
+Please follow the structure below when documenting your functions:
+
+```js
+/**
+ * Short summary of the function's purpose.
+ *
+ * @function
+ * @async // if applicable
+ * @param {Type} paramName - Description of the parameter.
+ * @returns {Type} - Description of the return value.
+ */
+function exampleFunction(param) {
+  // code here
+}

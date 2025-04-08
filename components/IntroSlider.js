@@ -3,6 +3,12 @@ import { View, Text, StyleSheet } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import PropTypes from 'prop-types'; // Додаємо імпорт PropTypes
 
+/**
+ * A list of slides used in the introductory slider.
+ * Each slide contains a title, description text, and background color.
+ * @type {Array<{ key: string, title: string, text: string, backgroundColor: string }>}
+ */
+
 const slides = [
   {
     key: '1',
@@ -30,7 +36,20 @@ const slides = [
   },
 ];
 
+/**
+ * IntroSlider component – displays an introduction slider with usage instructions.
+ *
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onDone - Callback function triggered when the slider is finished
+ * @returns {JSX.Element} The rendered intro slider component
+ */
+
 export default function IntroSlider({ onDone }) {
+  /**
+   * Handles completion of the intro slider.
+   * Calls the onDone prop function if provided.
+   */
   const handleDone = () => {
     if (onDone) {
       onDone(); // Викликаємо пропс для завершення слайдера
@@ -52,6 +71,13 @@ IntroSlider.propTypes = {
   onDone: PropTypes.func.isRequired, // Додаємо перевірку PropTypes
 };
 
+/**
+ * Renders a single slide in the intro slider.
+ *
+ * @param {Object} param
+ * @param {{ title: string, text: string, backgroundColor: string }} param.item - Slide data
+ * @returns {JSX.Element} Rendered slide content
+ */
 const renderItem = ({ item }) => {
   return (
     <View style={[styles.slide, { backgroundColor: item.backgroundColor }]}>

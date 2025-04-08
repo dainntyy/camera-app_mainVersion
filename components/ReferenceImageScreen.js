@@ -4,6 +4,13 @@ import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 
+/**
+ * Screen component that allows the user to select a reference image
+ * either from predefined templates or from their photo gallery.
+ * Selected image is passed to the Camera screen for further processing.
+ *
+ * @component
+ */
 export default function ReferenceImageScreen() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [galleryImages, setGalleryImages] = useState([]);
@@ -15,6 +22,10 @@ export default function ReferenceImageScreen() {
     require('./templatePictures/image2.jpg'),
   ];
 
+  /**
+   * useEffect hook that requests permission to access the media library
+   * on component mount. If granted, it fetches gallery images.
+   */
   useEffect(() => {
     const getPermission = async () => {
       const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -29,6 +40,14 @@ export default function ReferenceImageScreen() {
     getPermission();
   }, []);
 
+  /**
+   * Fetches the latest 21 photo assets from the device's media library
+   * and stores their URIs in the component state.
+   *
+   * @async
+   * @function fetchGalleryImages
+   * @returns {Promise<void>}
+   */
   const fetchGalleryImages = async () => {
     const media = await MediaLibrary.getAssetsAsync({
       sortBy: MediaLibrary.SortBy.creationTime,
@@ -47,6 +66,14 @@ export default function ReferenceImageScreen() {
     setGalleryImages(galleryUris);
   };
 
+  /**
+   * Opens the device's image library to let the user pick an image.
+   * If successful, navigates to the Camera screen with the selected image as reference.
+   *
+   * @async
+   * @function pickImage
+   * @returns {Promise<void>}
+   */
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
@@ -68,6 +95,12 @@ export default function ReferenceImageScreen() {
     }
   };
 
+  /**
+   * Navigates to the Camera screen with the selected reference image URI.
+   *
+   * @function handleConfirmSelection
+   * @param {string|number} uri - The URI of the selected reference image.
+   */
   const handleConfirmSelection = uri => {
     navigation.navigate('Camera', { referencePhotoUri: uri });
   };

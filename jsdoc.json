@@ -1,0 +1,11 @@
+{
+  "source": {
+    "include": ["app"],
+    "exclude": ["node_modules"]
+  },
+  "opts": {
+    "destination": "./docs/api",
+    "recurse": true,
+    "template": "default"
+  }
+}
