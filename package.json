@@ -15,7 +15,8 @@
     "prepare": "husky",
     "check": "npm run lint && npm run type-check && npm test",
     "type-check": "tsc --noEmit",
-    "docs": "jsdoc -c jsdoc.json"
+    "docs": "jsdoc -c jsdoc.json",
+    "deploy-docs": "gh-pages -d docs"
   },
   "jest": {
     "preset": "jest-expo"
