@@ -1,11 +1,12 @@
 {
   "source": {
-    "include": ["app"],
-    "exclude": ["node_modules"]
+    "include": ["./components", "./app"],
+    "includePattern": ".js$"
   },
   "opts": {
-    "destination": "./docs/api",
+    "destination": "./docs/generated",
     "recurse": true,
-    "template": "default"
-  }
+    "template": "node_modules/docdash"
+  },
+  "plugins": ["plugins/markdown"]
 }

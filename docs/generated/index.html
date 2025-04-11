@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>Home - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#CameraScreen">CameraScreen</a></li><li><a href="global.html#IntroSlider">IntroSlider</a></li><li><a href="global.html#ReferenceImageScreen">ReferenceImageScreen</a></li><li><a href="global.html#checkFirstLaunch">checkFirstLaunch</a></li><li><a href="global.html#fetchGalleryImages">fetchGalleryImages</a></li><li><a href="global.html#handleConfirmSelection">handleConfirmSelection</a></li><li><a href="global.html#openGallery">openGallery</a></li><li><a href="global.html#pickImage">pickImage</a></li><li><a href="global.html#pickReferenceImage">pickReferenceImage</a></li><li><a href="global.html#renderItem">renderItem</a></li><li><a href="global.html#slides">slides</a></li><li><a href="global.html#takePicture">takePicture</a></li><li><a href="global.html#toggleCameraType">toggleCameraType</a></li><li><a href="global.html#toggleFlash">toggleFlash</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+
+    
+
+
+
+    
+
+
+    <section class="package">
+        <h3> </h3>		
+    </section>
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        
+            app/App.js
+        
+        </h2>
+        
+    
+</header>
+
+<article>
+    
+        <div class="container-overview">
+        
+            
+
+<dl class="details">
+    
+    <dt class="tag-description">Description:</dt>
+    <dd class="tag-description"><ul class="dummy"><li><p>Entry point for the application. Handles navigation and determines whether to show onboarding.</p></li></ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="app_App.js.html">app/App.js</a>, <a href="app_App.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+            
+                <div class="description usertext"><p>Entry point for the application. Handles navigation and determines whether to show onboarding.</p></div>
+            
+
+            
+        
+        </div>
+    
+
+    
+
+    
+
+    
+    
+    
+
+     
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        
+            components/CameraScreen.js
+        
+        </h2>
+        
+    
+</header>
+
+<article>
+    
+        <div class="container-overview">
+        
+            
+
+<dl class="details">
+    
+    <dt class="tag-description">Description:</dt>
+    <dd class="tag-description"><ul class="dummy"><li><p>CameraScreen is the main component that manages photo capture,
+camera switching, flash toggling, overlaying a reference image, and gallery access.</p>
+<p>== Architecture ==</p>
+<ul>
+<li>The camera is implemented via the <code>CameraView</code> component from the expo-camera library.</li>
+<li>The photo is stored via the Expo MediaLibrary.</li>
+<li>The reference image is an overlay image that helps the user align the shot.</li>
+<li>The interface is built using standard React Native components.</li>
+</ul>
+<p>== Business logic ==</p>
+<ul>
+<li>If the user has enabled the reference image, it is superimposed on top of the camera with the specified transparency.</li>
+<li>The photo is mirrored only in the case of the front camera.</li>
+<li>The gallery shows the last saved photo.</li>
+</ul>
+<p>== Heavy algorithms ==</p>
+<ul>
+<li>Automatic determination of the path to the last photo, taking into account different URIs (for example, <code>ph://</code> on iOS).</li>
+<li>Image manipulation (mirroring) using <code>ImageManipulator</code> only in the case of the front camera.</li>
+</ul>
+<p>== Component Interaction ==</p>
+<ul>
+<li>Camera state (type, flash, last photo) is controlled via React useState/useEffect.</li>
+<li>Other screens interact via <code>React Navigation</code>, for example, to select a reference image.</li>
+<li>The camera is called via ref: <code>cameraRef.current.takePictureAsync()</code>.</li>
+</ul>
+<p>== Additional ==</p>
+<ul>
+<li>JSDoc is used to document each function.</li>
+<li>Test IDs for E2E tests are supported (<code>testID</code> on buttons).</li>
+</ul></li></ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_CameraScreen.js.html">components/CameraScreen.js</a>, <a href="components_CameraScreen.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+            
+                <div class="description usertext"><p>CameraScreen is the main component that manages photo capture,
+camera switching, flash toggling, overlaying a reference image, and gallery access.</p>
+<p>== Architecture ==</p>
+<ul>
+<li>The camera is implemented via the <code>CameraView</code> component from the expo-camera library.</li>
+<li>The photo is stored via the Expo MediaLibrary.</li>
+<li>The reference image is an overlay image that helps the user align the shot.</li>
+<li>The interface is built using standard React Native components.</li>
+</ul>
+<p>== Business logic ==</p>
+<ul>
+<li>If the user has enabled the reference image, it is superimposed on top of the camera with the specified transparency.</li>
+<li>The photo is mirrored only in the case of the front camera.</li>
+<li>The gallery shows the last saved photo.</li>
+</ul>
+<p>== Heavy algorithms ==</p>
+<ul>
+<li>Automatic determination of the path to the last photo, taking into account different URIs (for example, <code>ph://</code> on iOS).</li>
+<li>Image manipulation (mirroring) using <code>ImageManipulator</code> only in the case of the front camera.</li>
+</ul>
+<p>== Component Interaction ==</p>
+<ul>
+<li>Camera state (type, flash, last photo) is controlled via React useState/useEffect.</li>
+<li>Other screens interact via <code>React Navigation</code>, for example, to select a reference image.</li>
+<li>The camera is called via ref: <code>cameraRef.current.takePictureAsync()</code>.</li>
+</ul>
+<p>== Additional ==</p>
+<ul>
+<li>JSDoc is used to document each function.</li>
+<li>Test IDs for E2E tests are supported (<code>testID</code> on buttons).</li>
+</ul></div>
+            
+
+            
+        
+        </div>
+    
+
+    
+
+    
+
+    
+    
+    
+
+     
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        
+            components/IntroSlider.js
+        
+        </h2>
+        
+    
+</header>
+
+<article>
+    
+        <div class="container-overview">
+        
+            
+
+<dl class="details">
+    
+    <dt class="tag-description">Description:</dt>
+    <dd class="tag-description"><ul class="dummy"><li><p>Displays an onboarding slider for first-time users to explain the main features of the Camera App.</p></li></ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_IntroSlider.js.html">components/IntroSlider.js</a>, <a href="components_IntroSlider.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+            
+                <div class="description usertext"><p>Displays an onboarding slider for first-time users to explain the main features of the Camera App.</p></div>
+            
+
+            
+        
+        </div>
+    
+
+    
+
+    
+
+    
+    
+    
+
+     
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        
+            components/ReferenceImageScreen.js
+        
+        </h2>
+        
+    
+</header>
+
+<article>
+    
+        <div class="container-overview">
+        
+            
+
+<dl class="details">
+    
+    <dt class="tag-description">Description:</dt>
+    <dd class="tag-description"><ul class="dummy"><li><p>Screen that allows users to select a reference image from preloaded templates or their gallery.</p></li></ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_ReferenceImageScreen.js.html">components/ReferenceImageScreen.js</a>, <a href="components_ReferenceImageScreen.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+            
+                <div class="description usertext"><p>Screen that allows users to select a reference image from preloaded templates or their gallery.</p></div>
+            
+
+            
+        
+        </div>
+    
+
+    
+
+    
+
+    
+    
+    
+
+     
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.4</a> on Fri Apr 11 2025 18:36:04 GMT+0100 (за літнім часом у Великій Британії) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

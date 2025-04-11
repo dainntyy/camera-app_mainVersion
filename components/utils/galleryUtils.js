@@ -1,5 +1,8 @@
 import * as ImagePicker from 'expo-image-picker';
 
+/**
+ *
+ */
 export const openGallery = async () => {
   const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permissionResult.granted) {

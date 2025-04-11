@@ -1,3 +1,8 @@
+/**
+ * @file IntroSlider.js
+ * @description Displays an onboarding slider for first-time users to explain the main features of the Camera App.
+ */
+
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
@@ -40,12 +45,17 @@ const slides = [
  * IntroSlider component – displays an introduction slider with usage instructions.
  *
  * @component
- * @param {Object} props - Component props
+ * @param {object} props - Component props
  * @param {Function} props.onDone - Callback function triggered when the slider is finished
  * @returns {JSX.Element} The rendered intro slider component
  */
 
-export default function IntroSlider({ onDone }) {
+/**
+ *
+ * @param root0
+ * @param root0.onDone
+ */
+function IntroSlider({ onDone }) {
   /**
    * Handles completion of the intro slider.
    * Calls the onDone prop function if provided.
@@ -74,7 +84,7 @@ IntroSlider.propTypes = {
 /**
  * Renders a single slide in the intro slider.
  *
- * @param {Object} param
+ * @param {object} param
  * @param {{ title: string, text: string, backgroundColor: string }} param.item - Slide data
  * @returns {JSX.Element} Rendered slide content
  */
@@ -107,3 +117,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
 });
+
+export default IntroSlider;

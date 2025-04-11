@@ -1,6 +1,11 @@
 import * as MediaLibrary from 'expo-media-library';
 import { PixelRatio, Dimensions, ImageEditor } from 'react-native';
 
+/**
+ *
+ * @param cameraRef
+ * @param isFrontCamera
+ */
 export const takePicture = async (cameraRef, isFrontCamera) => {
   if (!cameraRef.current) {
     throw new Error('Camera reference is not available.');
