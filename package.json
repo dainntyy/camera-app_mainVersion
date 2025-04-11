@@ -15,7 +15,9 @@
     "prepare": "husky",
     "check": "npm run lint && npm run type-check && npm test",
     "type-check": "tsc --noEmit",
-    "docs": "jsdoc -c jsdoc.json",
+    "docs:uk": "set JSDOCTEMPLATE=uk&& jsdoc -c jsdoc.config.uk.json",
+    "docs:en": "jsdoc -c jsdoc.config.en.json",
+    "docs": "npm run docs:en && npm run docs:uk",
     "deploy-docs": "gh-pages -d docs"
   },
   "jest": {

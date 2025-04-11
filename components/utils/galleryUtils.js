@@ -1,7 +1,12 @@
 import * as ImagePicker from 'expo-image-picker';
 
 /**
+ * Opens the image gallery allowing the user to select an image.
  *
+ * @async
+ * @function openGallery
+ * @description[uk] Відкриває галерею зображень для вибору фото
+ * @returns {Promise<void>}
  */
 export const openGallery = async () => {
   const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();

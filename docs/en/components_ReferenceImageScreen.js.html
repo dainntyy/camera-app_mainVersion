@@ -1,4 +1,51 @@
-/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>components/ReferenceImageScreen.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#CameraScreen">CameraScreen</a></li><li><a href="global.html#IntroSlider">IntroSlider</a></li><li><a href="global.html#ReferenceImageScreen">ReferenceImageScreen</a></li><li><a href="global.html#checkFirstLaunch">checkFirstLaunch</a></li><li><a href="global.html#fetchGalleryImages">fetchGalleryImages</a></li><li><a href="global.html#handleConfirmSelection">handleConfirmSelection</a></li><li><a href="global.html#openGallery">openGallery</a></li><li><a href="global.html#pickImage">pickImage</a></li><li><a href="global.html#pickReferenceImage">pickReferenceImage</a></li><li><a href="global.html#renderItem">renderItem</a></li><li><a href="global.html#slides">slides</a></li><li><a href="global.html#takePicture">takePicture</a></li><li><a href="global.html#toggleCameraType">toggleCameraType</a></li><li><a href="global.html#toggleFlash">toggleFlash</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">components/ReferenceImageScreen.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
  * @file ReferenceImageScreen.js
  * @description Screen that allows users to select a reference image from preloaded templates or their gallery.
  * @description[uk] Екран, що дозволяє користувачам вибрати референтне зображення з шаблонів або своєї галереї.
@@ -16,7 +63,7 @@ import { useNavigation } from '@react-navigation/native';
  * Selected image is passed to the Camera screen for further processing.
  *
  * @component
- * @description[uk] Екранний компонент, який дозволяє користувачеві вибрати референсне зображення із попередньо визначених шаблонів або з їхньої фотогалереї. Вибране зображення передається на екран камери для подальшої обробки.
+ * @description[uk] Надає можливість вибору зображення з шаблонів або галереї
  * @returns {JSX.Element} Component render
  */
 function ReferenceImageScreen() {
@@ -58,8 +105,8 @@ function ReferenceImageScreen() {
    * @async
    * @function fetchGalleryImages
    * @description Gets latest 21 photos from device gallery
-   * @description[uk] Отримує останні 21 фото з галереї пристрою і зберігає їх URL в стані компонента
-   * @returns {Promise<void>}
+   * @description[uk] Отримує останні 21 фото з галереї пристрою
+   * @returns {Promise&lt;void>}
    */
   const fetchGalleryImages = async () => {
     const media = await MediaLibrary.getAssetsAsync({
@@ -86,8 +133,8 @@ function ReferenceImageScreen() {
    * @async
    * @function pickImage
    * @description Launches image picker and navigates to Camera with selected image
-   * @description[uk] Відкриває бібліотеку зображень пристрою, щоб користувач міг вибрати зображення. У разі успіху переходить на екран камери з вибраним зображенням як шаблоном.
-   * @returns {Promise<void>}
+   * @description[uk] Відкриває галерею для вибору зображення та переходить на екран камери
+   * @returns {Promise&lt;void>}
    */
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -97,7 +144,7 @@ function ReferenceImageScreen() {
       quality: 1,
     });
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
+    if (!result.canceled &amp;&amp; result.assets &amp;&amp; result.assets.length > 0) {
       const asset = result.assets[0];
       let uri = asset.uri;
 
@@ -124,82 +171,82 @@ function ReferenceImageScreen() {
 
   if (!hasPermission) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.permissionText} testID="permission-text">
+      &lt;View style={styles.container}>
+        &lt;Text style={styles.permissionText} testID="permission-text">
           We need permission to access your photos.
-        </Text>
-      </View>
+        &lt;/Text>
+      &lt;/View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title} testID="screen-title">
+    &lt;View style={styles.container}>
+      &lt;Text style={styles.title} testID="screen-title">
         Select Reference Image
-      </Text>
+      &lt;/Text>
 
-      <View style={styles.templateSection}>
-        <Text style={styles.sectionTitle} testID="template-section-title">
+      &lt;View style={styles.templateSection}>
+        &lt;Text style={styles.sectionTitle} testID="template-section-title">
           Template Images
-        </Text>
-        <FlatList
+        &lt;/Text>
+        &lt;FlatList
           horizontal
           data={templateImages}
           renderItem={({ item, index }) => (
-            <TouchableOpacity
+            &lt;TouchableOpacity
               onPress={() => setSelectedImage(item)}
               style={styles.imageContainer}
               testID={`template-image-${index}`}
             >
-              <Image source={item} style={styles.templateImage} />
-            </TouchableOpacity>
+              &lt;Image source={item} style={styles.templateImage} />
+            &lt;/TouchableOpacity>
           )}
           keyExtractor={(item, index) => index.toString()}
         />
-      </View>
+      &lt;/View>
 
-      <View style={styles.gallerySection}>
-        <Text style={styles.sectionTitle} testID="gallery-section-title">
+      &lt;View style={styles.gallerySection}>
+        &lt;Text style={styles.sectionTitle} testID="gallery-section-title">
           Your Gallery
-        </Text>
-        <FlatList
+        &lt;/Text>
+        &lt;FlatList
           data={galleryImages}
           renderItem={({ item, index }) => (
-            <TouchableOpacity
+            &lt;TouchableOpacity
               onPress={() => setSelectedImage(item)}
               style={styles.imageContainer}
               testID={`gallery-image-${index}`}
             >
-              <Image source={{ uri: item }} style={styles.galleryImage} />
-            </TouchableOpacity>
+              &lt;Image source={{ uri: item }} style={styles.galleryImage} />
+            &lt;/TouchableOpacity>
           )}
           keyExtractor={(item, index) => index.toString()}
           numColumns={3}
         />
-      </View>
+      &lt;/View>
 
-      {selectedImage && (
-        <View style={styles.previewContainer}>
-          <Image
+      {selectedImage &amp;&amp; (
+        &lt;View style={styles.previewContainer}>
+          &lt;Image
             source={typeof selectedImage === 'string' ? { uri: selectedImage } : selectedImage}
             style={styles.previewImage}
             testID="preview-image"
           />
 
-          <TouchableOpacity
+          &lt;TouchableOpacity
             onPress={() => handleConfirmSelection(selectedImage)}
             style={styles.confirmButton}
             testID="confirm-button"
           >
-            <Text style={styles.buttonText}>Confirm Selection</Text>
-          </TouchableOpacity>
-        </View>
+            &lt;Text style={styles.buttonText}>Confirm Selection&lt;/Text>
+          &lt;/TouchableOpacity>
+        &lt;/View>
       )}
 
-      <TouchableOpacity onPress={pickImage} style={styles.button} testID="open-gallery-button">
-        <Text style={styles.buttonText}>Open Gallery</Text>
-      </TouchableOpacity>
-    </View>
+      &lt;TouchableOpacity onPress={pickImage} style={styles.button} testID="open-gallery-button">
+        &lt;Text style={styles.buttonText}>Open Gallery&lt;/Text>
+      &lt;/TouchableOpacity>
+    &lt;/View>
   );
 }
 
@@ -272,3 +319,28 @@ const styles = StyleSheet.create({
 });
 
 export default ReferenceImageScreen;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.4</a> on Fri Apr 11 2025 20:55:14 GMT+0100 (за літнім часом у Великій Британії) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

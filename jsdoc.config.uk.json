@@ -1,0 +1,15 @@
+{
+  "source": {
+    "include": ["./components", "./app"],
+    "includePattern": ".js$"
+  },
+  "opts": {
+    "destination": "./docs/uk",
+    "recurse": true,
+    "template": "node_modules/docdash"
+  },
+  "plugins": [
+    "plugins/markdown",
+    "./plugins/description-uk.js"
+  ]
+}

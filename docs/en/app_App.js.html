@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>app/App.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#CameraScreen">CameraScreen</a></li><li><a href="global.html#IntroSlider">IntroSlider</a></li><li><a href="global.html#ReferenceImageScreen">ReferenceImageScreen</a></li><li><a href="global.html#checkFirstLaunch">checkFirstLaunch</a></li><li><a href="global.html#fetchGalleryImages">fetchGalleryImages</a></li><li><a href="global.html#handleConfirmSelection">handleConfirmSelection</a></li><li><a href="global.html#openGallery">openGallery</a></li><li><a href="global.html#pickImage">pickImage</a></li><li><a href="global.html#pickReferenceImage">pickReferenceImage</a></li><li><a href="global.html#renderItem">renderItem</a></li><li><a href="global.html#slides">slides</a></li><li><a href="global.html#takePicture">takePicture</a></li><li><a href="global.html#toggleCameraType">toggleCameraType</a></li><li><a href="global.html#toggleFlash">toggleFlash</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">app/App.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file App.js
+ * @description Entry point for the application. Handles navigation and determines whether to show onboarding.
+ */
+
+import React, { useState, useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Для збереження стану
+
+import CameraScreen from '../components/CameraScreen';
+import IntroSlider from '../components/IntroSlider';
+import ReferenceImageScreen from '../components/ReferenceImageScreen'; // новий екран
+
+const Stack = createStackNavigator();
+
+/**
+ * The main entry point of the application.
+ *
+ * This component manages the navigation flow of the app. On the first launch,
+ * it displays an introductory slider. After that, it navigates directly to the camera screen.
+ * The launch status is stored persistently using AsyncStorage.
+ *
+ * @component
+ * @returns {JSX.Element|null} The app's navigation container or null while checking launch state.
+ */
+function App() {
+  const [firstLaunch, setFirstLaunch] = useState(null); // Стан для перевірки, чи перший запуск
+
+  useEffect(() => {
+    /**
+     * Checks whether the app has been launched before by accessing AsyncStorage.
+     * Sets the `firstLaunch` state accordingly.
+     *
+     * @async
+     * @function checkFirstLaunch
+     * @returns {Promise&lt;void>}
+     */
+    const checkFirstLaunch = async () => {
+      const hasLaunched = await AsyncStorage.getItem('hasLaunched');
+      if (hasLaunched === null) {
+        setFirstLaunch(true);
+        await AsyncStorage.setItem('hasLaunched', 'true');
+      } else {
+        setFirstLaunch(false);
+      }
+    };
+
+    checkFirstLaunch();
+  }, []);
+
+  // Якщо стан still null, не рендеримо нічого, щоб уникнути помилки
+  if (firstLaunch === null) {
+    return null; // Можна додати спінер або порожній екран
+  }
+
+  return (
+    &lt;NavigationContainer>
+      &lt;Stack.Navigator screenOptions={{ headerShown: false }}>
+        {firstLaunch ? (
+          // Якщо це перший запуск, показуємо слайдер
+          &lt;Stack.Screen name="IntroSlider">
+            {props => &lt;IntroSlider {...props} onDone={() => setFirstLaunch(false)} />}
+          &lt;/Stack.Screen>
+        ) : (
+          // Показуємо екран камери після завершення слайдера
+          &lt;Stack.Screen name="CameraScreen" component={CameraScreen} />
+        )}
+
+        {/* Новий екран для вибору референсного зображення */}
+        &lt;Stack.Screen name="ReferenceImageScreen" component={ReferenceImageScreen} />
+      &lt;/Stack.Navigator>
+    &lt;/NavigationContainer>
+  );
+}
+
+export default App;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.4</a> on Fri Apr 11 2025 20:55:14 GMT+0100 (за літнім часом у Великій Британії) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

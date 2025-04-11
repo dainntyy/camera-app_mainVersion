@@ -2,9 +2,16 @@ import * as MediaLibrary from 'expo-media-library';
 import { PixelRatio, Dimensions, ImageEditor } from 'react-native';
 
 /**
+ * Captures a photo using the camera and optionally mirrors it if using the front camera.
  *
  * @param cameraRef
  * @param isFrontCamera
+ * @param cameraRef
+ * @param isFrontCamera
+ * @async
+ * @function takePicture
+ * @description[uk] Робить фото за допомогою камери та при необхідності віддзеркалює його для фронтальної камери
+ * @returns {Promise<void>}
  */
 export const takePicture = async (cameraRef, isFrontCamera) => {
   if (!cameraRef.current) {

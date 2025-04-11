@@ -1,4 +1,51 @@
-/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>components/CameraScreen.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#CameraScreen">CameraScreen</a></li><li><a href="global.html#IntroSlider">IntroSlider</a></li><li><a href="global.html#ReferenceImageScreen">ReferenceImageScreen</a></li><li><a href="global.html#checkFirstLaunch">checkFirstLaunch</a></li><li><a href="global.html#fetchGalleryImages">fetchGalleryImages</a></li><li><a href="global.html#handleConfirmSelection">handleConfirmSelection</a></li><li><a href="global.html#openGallery">openGallery</a></li><li><a href="global.html#pickImage">pickImage</a></li><li><a href="global.html#pickReferenceImage">pickReferenceImage</a></li><li><a href="global.html#renderItem">renderItem</a></li><li><a href="global.html#slides">slides</a></li><li><a href="global.html#takePicture">takePicture</a></li><li><a href="global.html#toggleCameraType">toggleCameraType</a></li><li><a href="global.html#toggleFlash">toggleFlash</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">components/CameraScreen.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
  * @file CameraScreen.js
  *
  * @description
@@ -28,31 +75,6 @@
  * == Additional ==
  * - JSDoc is used to document each function.
  * - Test IDs for E2E tests are supported (`testID` on buttons).
- * 
- * @description[uk] CameraScreen є основним компонентом, який керує фотозйомкою, перемиканням камери, перемиканням спалаху, накладанням контрольного зображення та доступом до галереї.
- * == Архітектура ==
- * - Камера реалізована через компонент `CameraView` з бібліотеки expo-camera.
- * - Фото зберігається через Expo MediaLibrary.
- * - Референсне зображення — накладене зображення, яке допомагає користувачеві вирівняти знімок.
- * - Інтерфейс побудований з використанням стандартних React Native компонентів.
- *
- * == Бізнес-логіка ==
- * - Якщо користувач увімкнув референсне зображення, воно накладається поверх камери з заданою прозорістю.
- * - Фото дзеркально відображається лише у випадку фронтальної камери.
- * - Галерея показує останнє збережене фото.
- *
- * == Важкі алгоритми ==
- * - Автоматичне визначення шляху до останнього фото, з урахуванням різних URI (наприклад, `ph://` на iOS).
- * - Маніпуляція зображенням (дзеркальне відображення) з використанням `ImageManipulator` тільки якщо фронтальна камера.
- *
- * == Взаємодія компонентів ==
- * - Стейт камери (тип, спалах, останнє фото) керується через React useState/useEffect.
- * - Інші екрани взаємодіють через `React Navigation`, наприклад, для вибору референсного зображення.
- * - Камера викликається через реф: `cameraRef.current.takePictureAsync()`.
- *
- * == Додатково ==
- * - Використовується JSDoc для документації кожної функції.
- * - Підтримуються тестові ID для E2E тестів (`testID` на кнопках).
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
@@ -76,7 +98,6 @@ import RefOffIcon from './icons/ref_off_icon.png';
  * CameraScreen is a React component that provides a custom camera interface
  * with support for flash, switching cameras, overlays, and saving photos
  *
- * @description[uk] React-компонент, що надає інтерфейс камери з підтримкою спалаху, перемикання камер, накладання зображень та збереження фото
  * @param {object} props - Component props
  * @param {object} props.route - React Navigation route object
  * @param {object} props.route.params - Parameters passed to this screen
@@ -117,8 +138,7 @@ function CameraScreen({ route }) {
      * Requests camera and media library permissions and retrieves the most recent photo.
      *
      * @async
-     * @description[uk] Запитує дозволи для камери та медіатеки та отримує останнє фото
-     * @returns {Promise<void>}
+     * @returns {Promise&lt;void>}
      */
     const getPermissionsAndAssets = async () => {
       if (!permission?.granted) {
@@ -160,24 +180,24 @@ function CameraScreen({ route }) {
 
   if (!permission?.granted) {
     return (
-      <View style={styles.container}>
-        <Text>We need your permission to show the camera</Text>
-        <TouchableOpacity onPress={requestPermission} style={styles.permissionButton}>
-          <Text style={styles.permissionButtonText}>Grant Permission</Text>
-        </TouchableOpacity>
-      </View>
+      &lt;View style={styles.container}>
+        &lt;Text>We need your permission to show the camera&lt;/Text>
+        &lt;TouchableOpacity onPress={requestPermission} style={styles.permissionButton}>
+          &lt;Text style={styles.permissionButtonText}>Grant Permission&lt;/Text>
+        &lt;/TouchableOpacity>
+      &lt;/View>
     );
   }
   // TODO: Remove inline styles
 
   if (!mediaLibraryPermission?.granted) {
     return (
-      <View style={styles.container}>
-        <Text style={{ textAlign: 'center' }}>We need your permission to access media library</Text>
-        <TouchableOpacity onPress={requestMediaLibraryPermission} style={styles.permissionButton}>
-          <Text style={styles.permissionButtonText}>Grant Media Library Permission</Text>
-        </TouchableOpacity>
-      </View>
+      &lt;View style={styles.container}>
+        &lt;Text style={{ textAlign: 'center' }}>We need your permission to access media library&lt;/Text>
+        &lt;TouchableOpacity onPress={requestMediaLibraryPermission} style={styles.permissionButton}>
+          &lt;Text style={styles.permissionButtonText}>Grant Media Library Permission&lt;/Text>
+        &lt;/TouchableOpacity>
+      &lt;/View>
     );
   }
 
@@ -186,8 +206,7 @@ function CameraScreen({ route }) {
    *
    * @async
    * @function takePicture
-   * @description[uk] Робить фото за допомогою камери та при необхідності віддзеркалює його для фронтальної камери
-   * @returns {Promise<void>}
+   * @returns {Promise&lt;void>}
    */
   const takePicture = async () => {
     if (cameraRef.current) {
@@ -220,7 +239,6 @@ function CameraScreen({ route }) {
    * Navigates to the reference image selection screen.
    *
    * @function pickReferenceImage
-   * @description[uk] Переходить на екран вибору референтного зображення
    * @returns {void}
    */
   const pickReferenceImage = () => {
@@ -231,7 +249,7 @@ function CameraScreen({ route }) {
    * Clears the currently set reference photo.
    *
    * @function clearReferencePhoto
-   * @description[uk] Очищає поточне референтне зображення
+   * @memberof CameraScreen
    * @returns {void}
    */
   const clearReferencePhoto = () => {
@@ -243,8 +261,7 @@ function CameraScreen({ route }) {
    *
    * @async
    * @function openGallery
-   * @description[uk] Відкриває галерею зображень для вибору фото
-   * @returns {Promise<void>}
+   * @returns {Promise&lt;void>}
    */
   const openGallery = async () => {
     try {
@@ -275,7 +292,6 @@ function CameraScreen({ route }) {
    * Toggles between front and back cameras.
    *
    * @function toggleCameraType
-   * @description[uk] Перемикає між фронтальною та основною камерами
    * @returns {void}
    */
   function toggleCameraType() {
@@ -286,7 +302,6 @@ function CameraScreen({ route }) {
    * Cycles through flash modes: off → on → auto → off.
    *
    * @function toggleFlash
-   * @description[uk] Змінює режими спалаху: вимкнено → увімкнено → авто → вимкнено
    * @returns {void}
    */
   function toggleFlash() {
@@ -311,11 +326,11 @@ function CameraScreen({ route }) {
   };
 
   return (
-    <View style={styles.container}>
-      <CameraView style={styles.camera} facing={type} ref={cameraRef} flash={flashMode}>
-        <View style={styles.overlayContainer}>
+    &lt;View style={styles.container}>
+      &lt;CameraView style={styles.camera} facing={type} ref={cameraRef} flash={flashMode}>
+        &lt;View style={styles.overlayContainer}>
           {referencePhoto ? (
-            <Image
+            &lt;Image
               source={{ uri: referencePhoto }}
               style={[
                 styles.overlayImage,
@@ -330,92 +345,92 @@ function CameraScreen({ route }) {
               ]}
             />
           ) : null}
-        </View>
-        <View style={styles.header} />
-        <View style={styles.topControls}>
-          <TouchableOpacity
+        &lt;/View>
+        &lt;View style={styles.header} />
+        &lt;View style={styles.topControls}>
+          &lt;TouchableOpacity
             testID="toggle-camera-button"
             onPress={toggleCameraType}
             style={styles.iconButton}
             accessibilityLabel="Toggle camera"
           >
-            <Image
+            &lt;Image
               source={flipCameraIcon}
               style={styles.iconImage}
               accessible={false} // Image is decorative; label provided on TouchableOpacity
             />
-          </TouchableOpacity>
-          <TouchableOpacity
+          &lt;/TouchableOpacity>
+          &lt;TouchableOpacity
             testID="toggle-flash-button"
             onPress={toggleFlash}
             style={styles.iconButton}
             accessibilityLabel={`Flash ${flashMode === 'off' ? 'off' : 'on'}`}
           >
-            <Image
+            &lt;Image
               source={flashMode === 'off' ? FlashOffIcon : FlashOnIcon}
               style={styles.iconImage}
               accessible={false} // Image is decorative; label provided on TouchableOpacity
             />
-          </TouchableOpacity>
-          <TouchableOpacity
+          &lt;/TouchableOpacity>
+          &lt;TouchableOpacity
             onPress={clearReferencePhoto}
             style={styles.iconButton}
             accessibilityLabel="Clear reference photo"
           >
-            <Image
+            &lt;Image
               source={RefOffIcon}
               style={styles.iconImage}
               accessible={false} // Image is decorative; label provided on TouchableOpacity
             />
-          </TouchableOpacity>
-        </View>
+          &lt;/TouchableOpacity>
+        &lt;/View>
 
-        <View style={styles.bottomControlsContainer}>
-          <View style={styles.bottomControls}>
-            <TouchableOpacity
+        &lt;View style={styles.bottomControlsContainer}>
+          &lt;View style={styles.bottomControls}>
+            &lt;TouchableOpacity
               onPress={pickReferenceImage}
               style={styles.iconButton}
               accessibilityLabel="Select reference photo"
             >
-              <Image source={RefIcon} style={styles.iconImage} />
-            </TouchableOpacity>
-            <TouchableOpacity
+              &lt;Image source={RefIcon} style={styles.iconImage} />
+            &lt;/TouchableOpacity>
+            &lt;TouchableOpacity
               testID="capture-button"
               onPress={takePicture}
               style={styles.captureButton}
               accessibilityLabel="Capture photo"
             >
-              <View style={styles.captureCircle} />
-            </TouchableOpacity>
-            <TouchableOpacity
+              &lt;View style={styles.captureCircle} />
+            &lt;/TouchableOpacity>
+            &lt;TouchableOpacity
               testID="open-gallery-button"
               onPress={openGallery}
               style={styles.iconButton}
               accessibilityLabel="Open Galery"
             >
               {lastPhotoUri ? (
-                <Image source={{ uri: lastPhotoUri }} style={styles.galleryImage} />
+                &lt;Image source={{ uri: lastPhotoUri }} style={styles.galleryImage} />
               ) : (
-                <Text style={styles.iconPlaceholder}>Gallery</Text>
+                &lt;Text style={styles.iconPlaceholder}>Gallery&lt;/Text>
               )}
-            </TouchableOpacity>
-          </View>
-          {referencePhoto && (
-            <View style={styles.sliderContainer}>
-              <Text style={styles.sliderLabel}>Opacity</Text>
-              <Slider
+            &lt;/TouchableOpacity>
+          &lt;/View>
+          {referencePhoto &amp;&amp; (
+            &lt;View style={styles.sliderContainer}>
+              &lt;Text style={styles.sliderLabel}>Opacity&lt;/Text>
+              &lt;Slider
                 style={styles.slider}
                 minimumValue={0}
                 maximumValue={1}
                 value={opacity}
                 onValueChange={setOpacity}
               />
-            </View>
+            &lt;/View>
           )}
-          <View style={styles.footer} />
-        </View>
-      </CameraView>
-    </View>
+          &lt;View style={styles.footer} />
+        &lt;/View>
+      &lt;/CameraView>
+    &lt;/View>
   );
 }
 
@@ -529,3 +544,28 @@ const styles = StyleSheet.create({
 });
 
 export default CameraScreen;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.4</a> on Fri Apr 11 2025 20:55:14 GMT+0100 (за літнім часом у Великій Британії) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>
