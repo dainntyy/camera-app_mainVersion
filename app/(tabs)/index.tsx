@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import CameraScreen from '../../components/CameraScreen.js/index.js'; // Adjust the import path as necessary
+import CameraScreen from '../../components/CameraScreen'; // Adjust the import path as necessary
 import IntroSlider from '../../components/IntroSlider'; // Додай шлях до IntroSlider
 import ReferenceImageScreen from '../../components/ReferenceImageScreen'; // Import your new screen
 

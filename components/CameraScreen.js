@@ -208,7 +208,8 @@ function CameraScreen({ route }) {
         }
 
         setPhotoUri(finalUri);
-        await MediaLibrary.saveToLibraryAsync(photoUri);
+        const asset = await MediaLibrary.createAssetAsync(finalUri);
+        await MediaLibrary.createAlbumAsync('MyApp', asset, false);
         setLastPhotoUri(finalUri);
       } catch (error) {
         console.error('Error taking picture:', error);

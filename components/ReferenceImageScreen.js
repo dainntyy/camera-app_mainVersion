@@ -79,6 +79,8 @@ function ReferenceImageScreen() {
     setGalleryImages(galleryUris);
   };
 
+  // TODO: fix template pictures choosing
+
   /**
    * Opens the device's image library to let the user pick an image.
    * If successful, navigates to the Camera screen with the selected image as reference.
