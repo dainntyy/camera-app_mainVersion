@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.dainntyy.cameraapp"
     },
     "android": {
       "adaptiveIcon": {
@@ -39,6 +40,12 @@
         "projectId": "b8c6fac3-9d72-4a05-986c-7b9bb17adaf2"
       }
     },
-    "owner": "dainntyy"
+    "owner": "dainntyy",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/b8c6fac3-9d72-4a05-986c-7b9bb17adaf2"
+    }
   }
 }

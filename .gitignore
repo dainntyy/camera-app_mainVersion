@@ -14,7 +14,6 @@ npm-debug.*
 *.mobileprovision
 *.tsbuildinfo
 *.orig.*
-eas.json
 web-build/
 
 # Logs

@@ -58,3 +58,48 @@ Please follow the structure below when documenting your functions:
 function exampleFunction(param) {
   // code here
 }
+```
+
+## Developer Setup Instructions
+
+### 📦 Project Structure
+
+- `app/App.js` — entry point
+- `components/` — reusable UI parts, screen components
+- `assets/` — static files (images, icons)
+- `docs/` — documentation and DevOps config
+
+### 1. Requirements
+
+   * Node.js (LTS)
+   * npm or yarn
+   * Git
+   * Expo CLI: npm install -g expo-cli
+   * Android Studio or Xcode (optional, for emulator or physical device testing)
+   * A physical device or emulator (Android/iOS)
+
+### 2. Getting Started
+```bash
+git clone https://github.com/dainntyy/camera-app_mainVersion.git
+cd camera-app
+npm install
+```
+
+### 3. Running in Development
+```bash
+npx expo start
+```
+### 4. Run on Your device
+   * Scan QR code with Expo Go (Android/iOS)
+   * Or press **a** to run Android emulator, **i** for iOS emulator
+### 5. Publishing to Expo (manual)
+   ```bash
+   eas login
+   eas update --branch main --message "Initial publish"
+   ```
+### 6. Basic Comands
+   ```bash
+   npm run lint # run linter
+   npm run doc # generate documentation from JSDoc
+   expo start # run Metro bundler
+   ```
