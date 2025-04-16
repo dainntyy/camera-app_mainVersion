@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import CameraScreen from '../../components/CameraScreen'; // Adjust the import path as necessary
 import IntroSlider from '../../components/IntroSlider'; // Додай шлях до IntroSlider
+import ReportBugScreen from '../../components/ReportBugScreen';
 import ReferenceImageScreen from '../../components/ReferenceImageScreen'; // Import your new screen
 
 const Stack = createStackNavigator();
@@ -35,6 +36,11 @@ export default function App() {
           component={ReferenceImageScreen} // ReferenceImageScreen component
           options={{ title: 'Select Reference Image', headerShown: true }}
         />
+        <Stack.Screen
+                  name="ReportBugScreen"
+                  component={ReportBugScreen}
+                  options={{ title: 'Report a Bug' }}
+                />
       </Stack.Navigator>
     </>
   );

@@ -11,8 +11,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; // Для 
 
 import CameraScreen from '../components/CameraScreen';
 import IntroSlider from '../components/IntroSlider';
+import ReportBugScreen from '../components/ReportBugScreen';
 import ReferenceImageScreen from '../components/ReferenceImageScreen'; // новий екран
-import log from '../components/utils/logger';
+import { log } from '../components/utils/logger';
 
 const Stack = createStackNavigator();
 
@@ -95,6 +96,11 @@ function App() {
 
         {/* Новий екран для вибору референсного зображення */}
         <Stack.Screen name="ReferenceImageScreen" component={ReferenceImageScreen} />
+        <Stack.Screen
+          name="ReportBugScreen"
+          component={ReportBugScreen}
+          options={{ title: 'Report a Bug' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

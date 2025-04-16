@@ -6,7 +6,7 @@ const logFilePath = FileSystem.documentDirectory + 'logs.txt';
 const MAX_LOG_SIZE = 500000;
 
 const config = {
-  severity: process.env.LOG_LEVEL || 'debug', //70%
+  severity: process.env.LOG_LEVEL || 'debug',
   transport: console.log,
   transportOptions: {
     colors: true,
@@ -20,23 +20,9 @@ const config = {
   },
 };
 
-export const readLogFile = async () => {
-  try {
-    const fileInfo = await FileSystem.getInfoAsync(logFilePath);
-    if (!fileInfo.exists) {
-      console.log('Log file does not exist yet.');
-      return;
-    }
+export const log = logger.createLogger(config);
 
-    const content = await FileSystem.readAsStringAsync(logFilePath);
-    console.log('[Log File Contents]:\n', content);
-  } catch (error) {
-    console.log('Failed to read log file:', error);
-  }
-};
-
-export default logger.createLogger(config);
-
+// ✅ Запис логів у файл
 export const logToFile = async message => {
   const timestamp = new Date().toISOString();
   const formatted = `[${timestamp}] ${message}\n`;
@@ -46,6 +32,7 @@ export const logToFile = async message => {
   });
 };
 
+// ✅ Ротація логів за розміром
 export const rotateLogsIfNeeded = async () => {
   try {
     const info = await FileSystem.getInfoAsync(logFilePath);
@@ -59,4 +46,31 @@ export const rotateLogsIfNeeded = async () => {
   } catch (e) {
     console.log('[Log Rotation Failed]', e.message);
   }
+};
+
+// ✅ Читання вмісту лог-файлу (для перегляду/відправки)
+export const getLogFileContent = async () => {
+  try {
+    const info = await FileSystem.getInfoAsync(logFilePath);
+    if (info.exists) {
+      return await FileSystem.readAsStringAsync(logFilePath);
+    }
+    return 'Log file is empty.';
+  } catch (error) {
+    return `Failed to read log file: ${error.message}`;
+  }
+};
+
+// ✅ Шлях до лог-файлу (можна прикріпити)
+export const logFileUri = logFilePath;
+
+// ✅ Готова функція логування помилки з контекстом
+export const logError = async (message, context = {}) => {
+  const timestamp = new Date().toISOString();
+  const entry = `[${timestamp}] ERROR: ${message}\nContext: ${JSON.stringify(context)}\n\n`;
+  log.error(message, context);
+  await FileSystem.writeAsStringAsync(logFilePath, entry, {
+    encoding: FileSystem.Encoding.UTF8,
+    append: true,
+  });
 };

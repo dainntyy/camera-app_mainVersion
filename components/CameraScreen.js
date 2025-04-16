@@ -74,8 +74,8 @@ import FlashOnIcon from './icons/flash_icon.png';
 import FlashOffIcon from './icons/flash_off.png';
 import RefIcon from './icons/ref_icon.png';
 import RefOffIcon from './icons/ref_off_icon.png';
-import log from './utils/logger';
-import { logToFile, rotateLogsIfNeeded, readLogFile } from './utils/logger';
+// import log from './utils/logger';
+import { logToFile, log, rotateLogsIfNeeded, readLogFile } from './utils/logger';
 import i18n from './utils/i18n';
 
 const getContextInfo = async (screen, functionName) => {
@@ -496,6 +496,19 @@ function CameraScreen({ route }) {
           >
             <Text style={styles.permissionButtonText}>Simulate Permission Error</Text>
           </TouchableOpacity> */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ReportBugScreen')}
+            style={{
+              position: 'absolute',
+              bottom: 160,
+              right: 20,
+              backgroundColor: '#f33',
+              padding: 10,
+              borderRadius: 8,
+            }}
+          >
+            <Text style={{ color: '#fff' }}>🛠 Report Bug</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.bottomControlsContainer}>
