@@ -28,7 +28,7 @@
  * == Additional ==
  * - JSDoc is used to document each function.
  * - Test IDs for E2E tests are supported (`testID` on buttons).
- * 
+ *
  * @description[uk] CameraScreen є основним компонентом, який керує фотозйомкою, перемиканням камери, перемиканням спалаху, накладанням контрольного зображення та доступом до галереї.
  * == Архітектура ==
  * - Камера реалізована через компонент `CameraView` з бібліотеки expo-camera.
@@ -64,6 +64,9 @@ import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
 import PropTypes from 'prop-types';
 import Slider from '@react-native-community/slider';
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+import { Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import flipCameraIcon from './icons/flip_camera.png';
@@ -71,6 +74,19 @@ import FlashOnIcon from './icons/flash_icon.png';
 import FlashOffIcon from './icons/flash_off.png';
 import RefIcon from './icons/ref_icon.png';
 import RefOffIcon from './icons/ref_off_icon.png';
+import log from './utils/logger';
+import { logToFile, rotateLogsIfNeeded, readLogFile } from './utils/logger';
+import i18n from './utils/i18n';
+
+const getContextInfo = async (screen, functionName) => {
+  return {
+    screen,
+    function: functionName,
+    platform: Platform.OS,
+    appVersion: Constants.expoConfig.version,
+    timestamp: new Date().toISOString(),
+  };
+};
 
 /**
  * CameraScreen is a React component that provides a custom camera interface
@@ -97,8 +113,21 @@ function CameraScreen({ route }) {
   const cameraRef = useRef(null);
   const [windowWidth, setWindowWidth] = useState(0);
   const [windowHeight, setWindowHeight] = useState(0);
+  const generateErrorId = () => `ERR_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+  let errorId;
+  useEffect(() => {
+    logToFile('[TEST] This log will create logs.txt');
+  }, []);
 
   useEffect(() => {
+    log.info('[I001] App launched: CameraScreen mounted');
+    log.debug(`[D001] Initial camera type: ${type}`);
+    return () => log.info('[I002] App stopped: CameraScreen unmounted');
+  }, [type]);
+
+  useEffect(() => {
+    log.debug('[D002] Getting window dimensions');
     const { width, height } = Dimensions.get('window');
     setWindowWidth(width);
     setWindowHeight(height);
@@ -107,6 +136,7 @@ function CameraScreen({ route }) {
   useFocusEffect(
     useCallback(() => {
       if (route.params?.referencePhotoUri) {
+        log.info('[I010] Reference photo updated from route');
         setReferencePhoto(route.params.referencePhotoUri);
       }
     }, [route.params?.referencePhotoUri])
@@ -121,16 +151,45 @@ function CameraScreen({ route }) {
      * @returns {Promise<void>}
      */
     const getPermissionsAndAssets = async () => {
+      log.info('[I020] Checking permissions');
       if (!permission?.granted) {
+        log.warn('[W001] Camera permission not granted, requesting...');
         const newPermission = await requestPermission();
-        if (!newPermission.granted) return;
+        if (!newPermission.granted) {
+          errorId = generateErrorId();
+          const context = await getContextInfo('CameraScreen', 'getPermissionsAndAssets');
+          log.error(`[${errorId}] Camera permission denied by user`, context);
+          rotateLogsIfNeeded();
+          logToFile(
+            `[ERROR] [${errorId}] Camera permission denied by user: ${JSON.stringify(context)}`
+          );
+          Alert.alert(i18n.t('error_title'), i18n.t('permission_camera'), [
+            { text: i18n.t('alert_ok') },
+          ]);
+          return;
+        }
+        log.info('[I021] Camera permission granted');
       }
 
       if (!mediaLibraryPermission?.granted) {
+        log.warn('[W002] Media Library permission not granted, requesting...');
         const newMediaPermission = await requestMediaLibraryPermission();
-        if (!newMediaPermission.granted) return;
+        if (!newMediaPermission.granted) {
+          errorId = generateErrorId();
+          const context = await getContextInfo('CameraScreen', 'getPermissionsAndAssets');
+          log.error(`[${errorId}] Media Library permission denied by user`, context);
+          rotateLogsIfNeeded();
+          logToFile(
+            `[ERROR] [${errorId}]  Media Library permission denied by user: ${JSON.stringify(context)}`
+          );
+          Alert.alert(i18n.t('error_title'), i18n.t('permission_library'), [
+            { text: i18n.t('alert_ok') },
+          ]);
+          return;
+        }
+        log.info('[I022] Media Library permission granted');
       }
-
+      log.debug('[D003] Fetching latest photo from Media Library');
       const media = await MediaLibrary.getAssetsAsync({
         sortBy: MediaLibrary.SortBy.creationTime,
         mediaType: 'photo',
@@ -147,7 +206,10 @@ function CameraScreen({ route }) {
           }
         } else {
           setLastPhotoUri(lastAsset.uri);
+          log.info('[I024] Last photo loaded from Media Library');
         }
+      } else {
+        log.info('[I025] No photos found in Media Library');
       }
     };
 
@@ -192,16 +254,15 @@ function CameraScreen({ route }) {
   const takePicture = async () => {
     if (cameraRef.current) {
       try {
-        // Зробити фото
+        log.info('[I030] Taking picture...');
         const photo = await cameraRef.current.takePictureAsync();
-
         let finalUri = photo.uri;
 
-        // Якщо використовується фронтальна камера, віддзеркалити фото
         if (type === 'front') {
+          log.debug('[D004] Using front camera, applying mirror flip');
           const manipulatedImage = await ImageManipulator.manipulateAsync(
             photo.uri,
-            [{ flip: ImageManipulator.FlipType.Horizontal }], // Дзеркальне відображення
+            [{ flip: ImageManipulator.FlipType.Horizontal }],
             { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
           );
           finalUri = manipulatedImage.uri;
@@ -211,8 +272,31 @@ function CameraScreen({ route }) {
         const asset = await MediaLibrary.createAssetAsync(finalUri);
         await MediaLibrary.createAlbumAsync('MyApp', asset, false);
         setLastPhotoUri(finalUri);
+        log.info('[I031] Photo captured and saved to Media Library');
       } catch (error) {
-        console.error('Error taking picture:', error);
+        errorId = generateErrorId();
+        log.error(`[${errorId}] Error taking picture:`, {
+          message: error.message,
+          screen: 'CamerScreen',
+          stack: error.stack,
+        });
+        rotateLogsIfNeeded();
+        logToFile(
+          `[ERROR] [${errorId}]  Error taking picture: ${JSON.stringify({
+            message: error.message,
+            screen: 'CamerScreen',
+            stack: error.stack,
+          })}`
+        );
+        Alert.alert(i18n.t('error_title'), i18n.t('error_take_photo'), [
+          { text: i18n.t('alert_ok') },
+          {
+            text: i18n.t('alert_report'),
+            onPress: () => {
+              logToFile(`[REPORT] User reported error ID ${errorId}`);
+            },
+          },
+        ]);
       }
     }
   };
@@ -249,26 +333,54 @@ function CameraScreen({ route }) {
    */
   const openGallery = async () => {
     try {
-      // Request media library permissions
+      log.info('[I040] Opening image gallery');
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!permissionResult.granted) {
-        alert('Permission to access media library is required!');
+        const warningMsg = '[W003] Gallery permission denied';
+        log.warn(warningMsg);
+        Alert.alert(i18n.t('error_title'), i18n.t('permission_library'), [
+          { text: i18n.t('alert_ok') },
+        ]);
+
         return;
       }
 
-      // Launch the image picker
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'], // Updated to use ImagePicker.MediaType
+        mediaTypes: ['images'],
         quality: 1,
       });
 
       if (!result.canceled) {
-        // Process the selected image
-        console.log(result.assets[0].uri);
+        log.info('[I041] Image selected from gallery:', result.assets[0].uri);
+      } else {
+        log.info('[I042] Gallery image selection canceled');
       }
     } catch (error) {
-      console.error('Error picking image:', error);
+      errorId = generateErrorId();
+      log.error(`[E004] Error picking image:`, {
+        message: error.message,
+        screen: 'CameraScreen',
+        stack: error.stack,
+      });
+      rotateLogsIfNeeded();
+      logToFile(
+        `[ERROR] [${errorId}]  Error picking image: ${JSON.stringify({
+          message: error.message,
+          screen: 'CamerScreen',
+          stack: error.stack,
+        })}`
+      );
+      Alert.alert(i18n.t('error_title'), i18n.t('error_pick_image'), [
+        { text: i18n.t('alert_ok') },
+        {
+          text: i18n.t('alert_report'),
+          onPress: () => {
+            logToFile(`[REPORT] User reported gallery error ID ${errorId}`);
+          },
+        },
+      ]);
+
     }
   };
 
@@ -369,6 +481,21 @@ function CameraScreen({ route }) {
               accessible={false} // Image is decorative; label provided on TouchableOpacity
             />
           </TouchableOpacity>
+          {/* <TouchableOpacity
+            onPress={async () => {
+              const error = new Error('💥 TEST_PERMISSION_DENIED_SIMULATION');
+              const errorId = `ERR_${Date.now()}`;
+              const context = await getContextInfo('CameraScreen', 'simulatePermission');
+
+              log.error(`[${errorId}] Permission error test`, context);
+              logToFile(`[ERROR] [${errorId}] Permission error test: ${JSON.stringify(context)}`);
+              Alert.alert('Simulated Permission Error', 'This is just a test.');
+              readLogFile();
+            }}
+            style={styles.permissionButton}
+          >
+            <Text style={styles.permissionButtonText}>Simulate Permission Error</Text>
+          </TouchableOpacity> */}
         </View>
 
         <View style={styles.bottomControlsContainer}>

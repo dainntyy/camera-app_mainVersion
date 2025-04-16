@@ -12,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; // Для 
 import CameraScreen from '../components/CameraScreen';
 import IntroSlider from '../components/IntroSlider';
 import ReferenceImageScreen from '../components/ReferenceImageScreen'; // новий екран
+import log from '../components/utils/logger';
 
 const Stack = createStackNavigator();
 
@@ -40,30 +41,52 @@ function App() {
      * @returns {Promise<void>}
      */
     const checkFirstLaunch = async () => {
-      const hasLaunched = await AsyncStorage.getItem('hasLaunched');
-      if (hasLaunched === null) {
-        setFirstLaunch(true);
-        await AsyncStorage.setItem('hasLaunched', 'true');
-      } else {
-        setFirstLaunch(false);
+      try {
+        log.info('[I000] App started: Checking first launch');
+
+        const hasLaunched = await AsyncStorage.getItem('hasLaunched');
+        if (hasLaunched === null) {
+          log.info('[I001] First launch detected');
+          setFirstLaunch(true);
+          await AsyncStorage.setItem('hasLaunched', 'true');
+          log.debug('[D001] Flag hasLaunched set to true');
+        } else {
+          log.info('[I002] Not first launch');
+          setFirstLaunch(false);
+        }
+      } catch (error) {
+        log.error('[E000] Error checking first launch:', error);
       }
     };
-
     checkFirstLaunch();
   }, []);
 
   // Якщо стан still null, не рендеримо нічого, щоб уникнути помилки
   if (firstLaunch === null) {
-    return null; // Можна додати спінер або порожній екран
+    log.debug('[D002] Launch state unknown, rendering null');
+    return null;
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      onStateChange={state => {
+        const currentRoute = state.routes[state.index]?.name;
+        log.info(`[I010] Navigation to screen: ${currentRoute}`);
+      }}
+    >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {firstLaunch ? (
           // Якщо це перший запуск, показуємо слайдер
           <Stack.Screen name="IntroSlider">
-            {props => <IntroSlider {...props} onDone={() => setFirstLaunch(false)} />}
+            {props => (
+              <IntroSlider
+                {...props}
+                onDone={() => {
+                  log.info('[I003] IntroSlider completed');
+                  setFirstLaunch(false);
+                }}
+              />
+            )}
           </Stack.Screen>
         ) : (
           // Показуємо екран камери після завершення слайдера
