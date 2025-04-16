@@ -103,3 +103,32 @@ npx expo start
    npm run doc # generate documentation from JSDoc
    expo start # run Metro bundler
    ```
+## 🐞 Bug Reporting & Technical Diagnostics
+This application includes a built-in bug reporting mechanism that allows users to submit feedback with technical context, enabling developers to resolve issues more efficiently.
+
+### Features
+* Bug Report Form available in the app
+* Fields:
+   * System Info (device, OS version, app version)
+   * Steps to Reproduce
+   * Optional Screenshots
+
+* Log file (logs.txt) is automatically attached
+* Email-based submission using Expo's MailComposer
+*  Ability to clear attached screenshots before sending
+
+## How It Works
+1. User taps "Report a Bug" button in the app.
+2. They fill in:
+   * Description of the issue
+   * Steps to reproduce
+   * Device/system details
+3. User optionally attaches one or more screenshots from their device.
+4. The app collects:
+   * Current log file contents
+   * Screenshot URIs
+   * Diagnostic context
+5. A pre-filled email is generated and sent to the developer.
+
+## Limitations
+Sending email requires the user to have **a configured mail client** (e.g. Gmail, Outlook) on their device.
