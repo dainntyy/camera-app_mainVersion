@@ -68,6 +68,8 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import * as FileSystem from 'expo-file-system';
+import { debounce } from 'lodash';
 
 import flipCameraIcon from './icons/flip_camera.png';
 import FlashOnIcon from './icons/flash_icon.png';
@@ -75,7 +77,7 @@ import FlashOffIcon from './icons/flash_off.png';
 import RefIcon from './icons/ref_icon.png';
 import RefOffIcon from './icons/ref_off_icon.png';
 // import log from './utils/logger';
-import { logToFile, log, rotateLogsIfNeeded, readLogFile } from './utils/logger';
+import { logToFile, log, rotateLogsIfNeeded } from './utils/logger';
 import i18n from './utils/i18n';
 
 const getContextInfo = async (screen, functionName) => {
@@ -141,6 +143,49 @@ function CameraScreen({ route }) {
       }
     }, [route.params?.referencePhotoUri])
   );
+  useEffect(() => {
+    return () => {
+      if (photoUri?.startsWith(FileSystem.documentDirectory)) {
+        FileSystem.deleteAsync(photoUri, { idempotent: true });
+      }
+      setPhotoUri(null);
+    };
+  }, []);
+
+  /**
+   * Toggles between front and back cameras.
+   *
+   * @function toggleCameraType
+   * @description[uk] Перемикає між фронтальною та основною камерами
+   * @returns {void}
+   */
+  const toggleCameraType = useCallback(
+    debounce(() => {
+      setType(current => (current === 'back' ? 'front' : 'back'));
+    }, 300),
+    []
+  );
+
+  /**
+   * Cycles through flash modes: off → on → auto → off.
+   *
+   * @function toggleFlash
+   * @description[uk] Змінює режими спалаху: вимкнено → увімкнено → авто → вимкнено
+   * @returns {void}
+   */
+  const toggleFlash = useCallback(
+    debounce(() => {
+      setFlashMode(prevFlashMode => {
+        switch (prevFlashMode) {
+          case 'off':
+            return 'on';
+          default:
+            return 'off';
+        }
+      });
+    }, 300),
+    []
+  );
 
   useEffect(() => {
     /**
@@ -190,6 +235,8 @@ function CameraScreen({ route }) {
         log.info('[I022] Media Library permission granted');
       }
       log.debug('[D003] Fetching latest photo from Media Library');
+      console.time('[PERF] loadLastPhoto');
+      const start = Date.now();
       const media = await MediaLibrary.getAssetsAsync({
         sortBy: MediaLibrary.SortBy.creationTime,
         mediaType: 'photo',
@@ -208,6 +255,8 @@ function CameraScreen({ route }) {
           setLastPhotoUri(lastAsset.uri);
           log.info('[I024] Last photo loaded from Media Library');
         }
+        console.timeEnd('[PERF] loadLastPhoto');
+        console.log(`[PERF] loadLastPhoto duration: ${Date.now() - start}ms`);
       } else {
         log.info('[I025] No photos found in Media Library');
       }
@@ -251,53 +300,79 @@ function CameraScreen({ route }) {
    * @description[uk] Робить фото за допомогою камери та при необхідності віддзеркалює його для фронтальної камери
    * @returns {Promise<void>}
    */
+
   const takePicture = async () => {
-    if (cameraRef.current) {
-      try {
-        log.info('[I030] Taking picture...');
-        const photo = await cameraRef.current.takePictureAsync();
-        let finalUri = photo.uri;
+    if (!cameraRef.current) return;
 
-        if (type === 'front') {
-          log.debug('[D004] Using front camera, applying mirror flip');
-          const manipulatedImage = await ImageManipulator.manipulateAsync(
-            photo.uri,
-            [{ flip: ImageManipulator.FlipType.Horizontal }],
-            { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
-          );
-          finalUri = manipulatedImage.uri;
-        }
+    console.time('[PERF] takePicture');
+    const start = Date.now();
 
-        setPhotoUri(finalUri);
-        const asset = await MediaLibrary.createAssetAsync(finalUri);
-        await MediaLibrary.createAlbumAsync('MyApp', asset, false);
-        setLastPhotoUri(finalUri);
-        log.info('[I031] Photo captured and saved to Media Library');
-      } catch (error) {
-        errorId = generateErrorId();
-        log.error(`[${errorId}] Error taking picture:`, {
-          message: error.message,
-          screen: 'CamerScreen',
-          stack: error.stack,
-        });
-        rotateLogsIfNeeded();
-        logToFile(
-          `[ERROR] [${errorId}]  Error taking picture: ${JSON.stringify({
-            message: error.message,
-            screen: 'CamerScreen',
-            stack: error.stack,
-          })}`
-        );
-        Alert.alert(i18n.t('error_title'), i18n.t('error_take_photo'), [
-          { text: i18n.t('alert_ok') },
+    try {
+      log.info('[I030] Taking picture...');
+      const photo = await cameraRef.current.takePictureAsync({
+        skipProcessing: true,
+        quality: 0.9,
+      });
+
+      let finalUri = photo.uri;
+      let tempToDelete = null;
+
+      if (type === 'front') {
+        log.debug('[D004] Using front camera, applying flip and resize...');
+        const manipulated = await ImageManipulator.manipulateAsync(
+          photo.uri,
+          [{ flip: ImageManipulator.FlipType.Horizontal }, { resize: { width: 1280 } }],
           {
-            text: i18n.t('alert_report'),
-            onPress: () => {
-              logToFile(`[REPORT] User reported error ID ${errorId}`);
-            },
-          },
-        ]);
+            compress: 0.7,
+            format: ImageManipulator.SaveFormat.JPEG,
+          }
+        );
+        finalUri = manipulated.uri;
+        tempToDelete = photo.uri;
       }
+
+      setPhotoUri(finalUri);
+
+      const asset = await MediaLibrary.createAssetAsync(finalUri);
+      const albumName = 'CameraApp';
+      let album = await MediaLibrary.getAlbumAsync(albumName);
+      if (!album) {
+        album = await MediaLibrary.createAlbumAsync(albumName, asset, false);
+      } else {
+        await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+      }
+
+      setLastPhotoUri(finalUri);
+      log.info('[I031] Photo saved to Media Library');
+      console.log(`[PERF] takePicture duration: ${Date.now() - start}ms`);
+
+      // 🧹 Clean temp file
+      if (tempToDelete) {
+        await FileSystem.deleteAsync(tempToDelete, { idempotent: true });
+        log.debug(`[D006] Deleted temp file: ${tempToDelete}`);
+      }
+
+    } catch (error) {
+      const errorId = generateErrorId();
+      log.error(`[${errorId}] Error taking picture:`, {
+        message: error.message,
+        screen: 'CameraScreen',
+        stack: error.stack,
+      });
+      rotateLogsIfNeeded();
+      logToFile(
+        `[ERROR] [${errorId}] ${JSON.stringify({ message: error.message, screen: 'CameraScreen', stack: error.stack })}`
+      );
+
+      Alert.alert(i18n.t('error_title'), i18n.t('error_take_photo'), [
+        { text: i18n.t('alert_ok') },
+        {
+          text: i18n.t('alert_report'),
+          onPress: () => logToFile(`[REPORT] User reported error ID ${errorId}`),
+        },
+      ]);
+    } finally {
+      console.timeEnd('[PERF] takePicture');
     }
   };
 
@@ -319,8 +394,25 @@ function CameraScreen({ route }) {
    * @description[uk] Очищає поточне референтне зображення
    * @returns {void}
    */
-  const clearReferencePhoto = () => {
-    setReferencePhoto(null);
+  const clearReferencePhoto = async () => {
+    try {
+      const uri = referencePhoto;
+      if (!uri) return;
+
+      const isTemporary =
+        uri.startsWith(FileSystem.documentDirectory) || uri.startsWith(FileSystem.cacheDirectory);
+
+      if (isTemporary) {
+        await FileSystem.deleteAsync(uri, { idempotent: true });
+        log.debug(`[D007] Deleted local reference image: ${uri}`);
+      } else {
+        log.debug(`[D008] Reference image from gallery or system: ${uri} – not deleting`);
+      }
+
+      setReferencePhoto(null);
+    } catch (error) {
+      log.error('[E007] Failed to clear reference image', error);
+    }
   };
 
   /**
@@ -380,40 +472,8 @@ function CameraScreen({ route }) {
           },
         },
       ]);
-
     }
   };
-
-  /**
-   * Toggles between front and back cameras.
-   *
-   * @function toggleCameraType
-   * @description[uk] Перемикає між фронтальною та основною камерами
-   * @returns {void}
-   */
-  function toggleCameraType() {
-    setType(current => (current === 'back' ? 'front' : 'back'));
-  }
-
-  /**
-   * Cycles through flash modes: off → on → auto → off.
-   *
-   * @function toggleFlash
-   * @description[uk] Змінює режими спалаху: вимкнено → увімкнено → авто → вимкнено
-   * @returns {void}
-   */
-  function toggleFlash() {
-    setFlashMode(prevFlashMode => {
-      switch (prevFlashMode) {
-        case 'off':
-          return 'on';
-        case 'on':
-          return 'auto';
-        default:
-          return 'off';
-      }
-    });
-  }
 
   CameraScreen.propTypes = {
     route: PropTypes.shape({

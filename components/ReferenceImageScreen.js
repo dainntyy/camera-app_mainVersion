@@ -5,10 +5,12 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, Image, StyleSheet, FlatList } from 'react-native';
+import { View, TouchableOpacity, Text, Image, StyleSheet, FlatList, Platform } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
+import * as FileSystem from 'expo-file-system';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 /**
  * Screen component that allows the user to select a reference image
@@ -23,12 +25,22 @@ function ReferenceImageScreen() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [galleryImages, setGalleryImages] = useState([]);
   const [hasPermission, setHasPermission] = useState(false);
+  const [referenceImage, setReferenceImage] = useState(null);
   const navigation = useNavigation();
 
   const templateImages = [
     require('./templatePictures/image1.jpeg'),
     require('./templatePictures/image2.jpg'),
   ];
+
+  useEffect(() => {
+    return () => {
+      if (referenceImage?.startsWith(FileSystem.cacheDirectory)) {
+        FileSystem.deleteAsync(referenceImage, { idempotent: true });
+      }
+      setReferenceImage(null);
+    };
+  }, [referenceImage]);
 
   useEffect(() => {
     /**
@@ -62,22 +74,60 @@ function ReferenceImageScreen() {
    * @returns {Promise<void>}
    */
   const fetchGalleryImages = async () => {
+    console.time('[PERF] loadGalleryImages');
+    const start = Date.now();
+
     const media = await MediaLibrary.getAssetsAsync({
       sortBy: MediaLibrary.SortBy.creationTime,
       mediaType: 'photo',
       first: 21,
     });
-    const galleryUris = await Promise.all(
-      media.assets.map(async asset => {
-        if (asset.uri.startsWith('ph://')) {
+
+    const phAssets = media.assets.filter(a => Platform.OS === 'ios' && a.uri.startsWith('ph://'));
+    const normalAssets = media.assets.filter(a => !a.uri.startsWith('ph://'));
+    // Отримати info лише для ph://
+    const phUris = await Promise.all(
+      phAssets.map(async asset => {
+        try {
           const assetInfo = await MediaLibrary.getAssetInfoAsync(asset.id);
           return assetInfo.localUri || assetInfo.uri;
+        } catch (e) {
+          console.warn(`Failed to get asset info for ${asset.id}`, e);
+          return null;
         }
-        return asset.uri;
       })
     );
-    setGalleryImages(galleryUris);
+
+    // Комбінуємо URI
+    const allUris = [...normalAssets.map(a => a.uri), ...phUris.filter(Boolean)];
+    setGalleryImages(allUris);
+
+    console.timeEnd('[PERF] loadGalleryImages');
+    console.log(`[PERF] Gallery images load: ${Date.now() - start}ms`);
   };
+
+  const optimizeOverlayImage = async uri => {
+    const result = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 1000 } }], {
+      compress: 0.6,
+      format: ImageManipulator.SaveFormat.JPEG,
+    });
+    return result.uri;
+  };
+
+  const cacheOverlayImage = async uri => {
+    const fileName = uri.split('/').pop();
+    const cachedUri = `${FileSystem.cacheDirectory}${fileName}`;
+    const info = await FileSystem.getInfoAsync(cachedUri);
+    if (info.exists) return cachedUri;
+
+    const result = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 1000 } }], {
+      compress: 0.6,
+      format: ImageManipulator.SaveFormat.JPEG,
+    });
+    await FileSystem.moveAsync({ from: result.uri, to: cachedUri });
+    return cachedUri;
+  };
+
 
   // TODO: fix template pictures choosing
 
@@ -96,21 +146,37 @@ function ReferenceImageScreen() {
       mediaTypes: ['images'],
       allowsEditing: false,
       aspect: [4, 3],
-      quality: 1,
+      quality: 0.5,
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
       let uri = asset.uri;
 
-      if (uri.startsWith('ph://')) {
+      if (Platform.OS === 'ios' && uri.startsWith('ph://')) {
         const assetInfo = await MediaLibrary.getAssetInfoAsync(asset.uri);
         uri = assetInfo.localUri || assetInfo.uri;
       }
-
-      navigation.navigate('Camera', { referencePhotoUri: uri });
+      const manipulated = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: 800 } }],
+        { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      const optimized = await cacheOverlayImage(optimizeOverlayImage(manipulated.uri));
+      setReferenceImage(optimized);
+      navigation.navigate('Camera', { referencePhotoUri: manipulated.uri });
     }
   };
+
+  useEffect(() => {
+    return () => {
+      // Очистка при виході
+      if (referenceImage?.startsWith(FileSystem.documentDirectory)) {
+        FileSystem.deleteAsync(referenceImage, { idempotent: true });
+      }
+      setReferenceImage(null);
+    };
+  }, []);
 
   /**
    * Navigates to the Camera screen with the selected reference image URI.
@@ -120,10 +186,13 @@ function ReferenceImageScreen() {
    * @description Navigates to Camera screen with selected image
    * @description[uk] Переходить на екран камери з обраним зображенням
    */
-  const handleConfirmSelection = uri => {
-    navigation.navigate('Camera', { referencePhotoUri: uri });
+  const handleConfirmSelection = async uri => {
+    if (typeof uri === 'string') {
+      const optimized = await cacheOverlayImage(uri);
+      setReferenceImage(optimized);
+      navigation.navigate('Camera', { referencePhotoUri: optimized });
+    }
   };
-
   if (!hasPermission) {
     return (
       <View style={styles.container}>
@@ -177,6 +246,10 @@ function ReferenceImageScreen() {
           )}
           keyExtractor={(item, index) => index.toString()}
           numColumns={3}
+          windowSize={5} // ✅ Only render what's needed
+          initialNumToRender={9} // ✅ Faster first render
+          maxToRenderPerBatch={6} // ✅ Batch-wise rendering
+          removeClippedSubviews={true}
         />
       </View>
 

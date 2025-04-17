@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import CameraScreen from '../../components/CameraScreen'; // Adjust the import path as necessary
 import IntroSlider from '../../components/IntroSlider'; // Додай шлях до IntroSlider
