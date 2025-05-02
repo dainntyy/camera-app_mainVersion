@@ -76,6 +76,7 @@ import FlashOnIcon from './icons/flash_icon.png';
 import FlashOffIcon from './icons/flash_off.png';
 import RefIcon from './icons/ref_icon.png';
 import RefOffIcon from './icons/ref_off_icon.png';
+import alignWithReference from './utils/imageAlignment';
 // import log from './utils/logger';
 import { logToFile, log, rotateLogsIfNeeded } from './utils/logger';
 import i18n from './utils/i18n';
@@ -306,6 +307,7 @@ function CameraScreen({ route }) {
 
     console.time('[PERF] takePicture');
     const start = Date.now();
+    let tempToDelete = null;
 
     try {
       log.info('[I030] Taking picture...');
@@ -314,66 +316,72 @@ function CameraScreen({ route }) {
         quality: 0.9,
       });
 
-      let finalUri = photo.uri;
-      let tempToDelete = null;
-
+      let capturedUri = photo.uri;
       if (type === 'front') {
-        log.debug('[D004] Using front camera, applying flip and resize...');
         const manipulated = await ImageManipulator.manipulateAsync(
-          photo.uri,
+          capturedUri,
           [{ flip: ImageManipulator.FlipType.Horizontal }, { resize: { width: 1280 } }],
-          {
-            compress: 0.7,
-            format: ImageManipulator.SaveFormat.JPEG,
-          }
+          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
         );
-        finalUri = manipulated.uri;
+        capturedUri = manipulated.uri;
         tempToDelete = photo.uri;
       }
 
-      setPhotoUri(finalUri);
-
-      const asset = await MediaLibrary.createAssetAsync(finalUri);
-      const albumName = 'CameraApp';
-      let album = await MediaLibrary.getAlbumAsync(albumName);
-      if (!album) {
-        album = await MediaLibrary.createAlbumAsync(albumName, asset, false);
+      // Якщо є референсне фото – пропонуємо вирівняти
+      if (referencePhoto) {
+        Alert.alert(
+          'Автовирівнювання',
+          'Бажаєте вирівняти фото за шаблоном?',
+          [
+            {
+              text: 'Ні, зберегти як є',
+              onPress: async () => {
+                await savePhoto(capturedUri);
+              },
+            },
+            {
+              text: 'Так, вирівняти',
+              onPress: async () => {
+                const alignedUri = await alignWithReference(capturedUri, referencePhoto);
+                await savePhoto(alignedUri);
+                if (capturedUri !== alignedUri) {
+                  await FileSystem.deleteAsync(capturedUri, { idempotent: true });
+                }
+              },
+            },
+          ],
+          { cancelable: true }
+        );
       } else {
-        await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+        await savePhoto(capturedUri);
       }
 
-      setLastPhotoUri(finalUri);
-      log.info('[I031] Photo saved to Media Library');
-      console.log(`[PERF] takePicture duration: ${Date.now() - start}ms`);
-
-      // 🧹 Clean temp file
+      setLastPhotoUri(capturedUri);
+    } catch (error) {
+      const errorId = `ERR_${Date.now()}`;
+      log.error(`[${errorId}] Error taking picture: ${error.message}`);
+      logToFile(`[ERROR] [${errorId}] ${error.stack}`);
+      Alert.alert('Помилка', 'Не вдалося зробити фото');
+    } finally {
       if (tempToDelete) {
         await FileSystem.deleteAsync(tempToDelete, { idempotent: true });
         log.debug(`[D006] Deleted temp file: ${tempToDelete}`);
       }
-
-    } catch (error) {
-      const errorId = generateErrorId();
-      log.error(`[${errorId}] Error taking picture:`, {
-        message: error.message,
-        screen: 'CameraScreen',
-        stack: error.stack,
-      });
-      rotateLogsIfNeeded();
-      logToFile(
-        `[ERROR] [${errorId}] ${JSON.stringify({ message: error.message, screen: 'CameraScreen', stack: error.stack })}`
-      );
-
-      Alert.alert(i18n.t('error_title'), i18n.t('error_take_photo'), [
-        { text: i18n.t('alert_ok') },
-        {
-          text: i18n.t('alert_report'),
-          onPress: () => logToFile(`[REPORT] User reported error ID ${errorId}`),
-        },
-      ]);
-    } finally {
       console.timeEnd('[PERF] takePicture');
     }
+  };
+
+  const savePhoto = async uri => {
+    const asset = await MediaLibrary.createAssetAsync(uri);
+    const albumName = 'CameraApp';
+    let album = await MediaLibrary.getAlbumAsync(albumName);
+    if (!album) {
+      album = await MediaLibrary.createAlbumAsync(albumName, asset, false);
+    } else {
+      await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+    }
+    setPhotoUri(uri);
+    log.info('[I031] Photo saved to Media Library');
   };
 
   /**

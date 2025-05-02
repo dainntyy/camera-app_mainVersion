@@ -162,7 +162,8 @@ function ReferenceImageScreen() {
         [{ resize: { width: 800 } }],
         { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG }
       );
-      const optimized = await cacheOverlayImage(optimizeOverlayImage(manipulated.uri));
+      const optimizedUri = await optimizeOverlayImage(manipulated.uri);
+      const optimized = await cacheOverlayImage(optimizedUri);
       setReferenceImage(optimized);
       navigation.navigate('Camera', { referencePhotoUri: manipulated.uri });
     }
@@ -186,13 +187,35 @@ function ReferenceImageScreen() {
    * @description Navigates to Camera screen with selected image
    * @description[uk] Переходить на екран камери з обраним зображенням
    */
-  const handleConfirmSelection = async uri => {
-    if (typeof uri === 'string') {
-      const optimized = await cacheOverlayImage(uri);
-      setReferenceImage(optimized);
-      navigation.navigate('Camera', { referencePhotoUri: optimized });
+  
+  const handleConfirmSelection = async selected => {
+    try {
+      let resolvedUri = null;
+
+      // 📁 Local require('./template.jpg')
+      if (typeof selected !== 'string') {
+        const resolved = Image.resolveAssetSource(selected);
+        resolvedUri = resolved.uri;
+      } else {
+        resolvedUri = selected;
+      }
+
+      // 🧠 Якщо це ph:// (iOS), отримати localUri
+      if (Platform.OS === 'ios' && resolvedUri.startsWith('ph://')) {
+        const asset = await MediaLibrary.getAssetInfoAsync(resolvedUri);
+        if (!asset.localUri) throw new Error('Could not resolve localUri for iOS asset');
+        resolvedUri = asset.localUri;
+      }
+
+      const optimizedUri = await optimizeOverlayImage(resolvedUri);
+      const cached = await cacheOverlayImage(optimizedUri);
+      navigation.navigate('Camera', { referencePhotoUri: cached });
+    } catch (error) {
+      console.error('[E_CONFIRM_SELECTION]', error);
+      alert('❌ Failed to select image. Please try again or use a development build.');
     }
   };
+
   if (!hasPermission) {
     return (
       <View style={styles.container}>
