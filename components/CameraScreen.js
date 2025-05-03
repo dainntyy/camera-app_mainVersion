@@ -76,7 +76,8 @@ import FlashOnIcon from './icons/flash_icon.png';
 import FlashOffIcon from './icons/flash_off.png';
 import RefIcon from './icons/ref_icon.png';
 import RefOffIcon from './icons/ref_off_icon.png';
-import alignWithReference from './utils/imageAlignment';
+// import alignWithReference from './utils/imageAlignment';
+import analyzeImage from './utils/analyzeImage';
 // import log from './utils/logger';
 import { logToFile, log, rotateLogsIfNeeded } from './utils/logger';
 import i18n from './utils/i18n';
@@ -113,6 +114,8 @@ function CameraScreen({ route }) {
   const [referencePhoto, setReferencePhoto] = useState(route.params?.referencePhotoUri || null);
   const [isFrontCamera, setIsFrontCamera] = useState(type === 'front');
   const [opacity, setOpacity] = useState(0.3);
+  const [alignmentHint, setAlignmentHint] = useState('');
+  const [alignmentHelpEnabled, setAlignmentHelpEnabled] = useState(false);
   const cameraRef = useRef(null);
   const [windowWidth, setWindowWidth] = useState(0);
   const [windowHeight, setWindowHeight] = useState(0);
@@ -316,58 +319,139 @@ function CameraScreen({ route }) {
         quality: 0.9,
       });
 
-      let capturedUri = photo.uri;
+      let finalUri = photo.uri;
       if (type === 'front') {
+        log.debug('[D004] Using front camera, applying flip and resize...');
         const manipulated = await ImageManipulator.manipulateAsync(
-          capturedUri,
+          photo.uri,
           [{ flip: ImageManipulator.FlipType.Horizontal }, { resize: { width: 1280 } }],
           { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
         );
-        capturedUri = manipulated.uri;
+        finalUri = manipulated.uri;
         tempToDelete = photo.uri;
       }
 
-      // Якщо є референсне фото – пропонуємо вирівняти
-      if (referencePhoto) {
-        Alert.alert(
-          'Автовирівнювання',
-          'Бажаєте вирівняти фото за шаблоном?',
-          [
-            {
-              text: 'Ні, зберегти як є',
-              onPress: async () => {
-                await savePhoto(capturedUri);
-              },
-            },
-            {
-              text: 'Так, вирівняти',
-              onPress: async () => {
-                const alignedUri = await alignWithReference(capturedUri, referencePhoto);
-                await savePhoto(alignedUri);
-                if (capturedUri !== alignedUri) {
-                  await FileSystem.deleteAsync(capturedUri, { idempotent: true });
-                }
-              },
-            },
-          ],
-          { cancelable: true }
-        );
+      setPhotoUri(finalUri);
+
+      const asset = await MediaLibrary.createAssetAsync(finalUri);
+      const albumName = 'CameraApp';
+      let album = await MediaLibrary.getAlbumAsync(albumName);
+      if (!album) {
+        album = await MediaLibrary.createAlbumAsync(albumName, asset, false);
       } else {
-        await savePhoto(capturedUri);
+        await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
       }
 
-      setLastPhotoUri(capturedUri);
-    } catch (error) {
-      const errorId = `ERR_${Date.now()}`;
-      log.error(`[${errorId}] Error taking picture: ${error.message}`);
-      logToFile(`[ERROR] [${errorId}] ${error.stack}`);
-      Alert.alert('Помилка', 'Не вдалося зробити фото');
-    } finally {
+      setLastPhotoUri(finalUri);
+
+      // 👉 Аналіз фото
+      if (alignmentHelpEnabled && referencePhoto) {
+        await maybeAnalyzeImage(finalUri, referencePhoto);
+      }
+      // if (referencePhoto) {
+      //   try {
+      //     console.log('[DEBUG] Calling analyzeImage with', finalUri, referencePhoto);
+      //     const result = await analyzeImage(finalUri, referencePhoto);
+      //     console.log('Alignment result:', result);
+      //     let hint;
+
+      //     if (result.confidence >= 0.85 && result.tip === 'Добре вирівняно') {
+      //       setAlignmentHint('✅ Чудово! Фото добре вирівняне.');
+      //     } else {
+      //       switch (result.alignment) {
+      //         case 'left':
+      //           hint = '🔄 Вирівняй камеру лівіше';
+      //           break;
+      //         case 'right':
+      //           hint = '🔄 Вирівняй камеру правіше';
+      //           break;
+      //         case 'up':
+      //           hint = '🔼 Нахили камеру вгору';
+      //           break;
+      //         case 'down':
+      //           hint = '🔽 Нахили камеру вниз';
+      //           break;
+      //       }
+      //       setAlignmentHint(hint);
+      //     }
+
+      //     // Автоматичне приховування підказки через 3 секунди
+      //     setTimeout(() => setAlignmentHint(null), 3000);
+      //   } catch (err) {
+      //     console.warn('Помилка аналізу фото:', err);
+      //     setAlignmentHint('❗️Не вдалося проаналізувати фото');
+      //     setTimeout(() => setAlignmentHint(null), 3000);
+      //   }
+      // }
+
+      log.info('[I031] Photo saved to Media Library');
+      console.log(`[PERF] takePicture duration: ${Date.now() - start}ms`);
+
       if (tempToDelete) {
         await FileSystem.deleteAsync(tempToDelete, { idempotent: true });
         log.debug(`[D006] Deleted temp file: ${tempToDelete}`);
       }
+    } catch (error) {
+      const errorId = generateErrorId();
+      log.error(`[${errorId}] Error taking picture:`, {
+        message: error.message,
+        screen: 'CameraScreen',
+        stack: error.stack,
+      });
+      rotateLogsIfNeeded();
+      logToFile(
+        `[ERROR] [${errorId}] ${JSON.stringify({ message: error.message, screen: 'CameraScreen', stack: error.stack })}`
+      );
+
+      Alert.alert(i18n.t('error_title'), i18n.t('error_take_photo'), [
+        { text: i18n.t('alert_ok') },
+        {
+          text: i18n.t('alert_report'),
+          onPress: () => logToFile(`[REPORT] User reported error ID ${errorId}`),
+        },
+      ]);
+    } finally {
       console.timeEnd('[PERF] takePicture');
+    }
+  };
+
+  const maybeAnalyzeImage = async (finalUri, referencePhoto) => {
+    if (!alignmentHelpEnabled) return;
+
+    if (referencePhoto) {
+      try {
+        console.log('[DEBUG] Calling analyzeImage with', finalUri, referencePhoto);
+        const result = await analyzeImage(finalUri, referencePhoto);
+        console.log('Alignment result:', result);
+        let hint;
+
+        if (result.confidence >= 0.85 && result.tip === 'Добре вирівняно') {
+          setAlignmentHint('✅ Чудово! Фото добре вирівняне.');
+        } else {
+          switch (result.alignment) {
+            case 'left':
+              hint = '🔄 Вирівняй камеру лівіше';
+              break;
+            case 'right':
+              hint = '🔄 Вирівняй камеру правіше';
+              break;
+            case 'up':
+              hint = '🔼 Нахили камеру вгору';
+              break;
+            case 'down':
+              hint = '🔽 Нахили камеру вниз';
+              break;
+          }
+          setAlignmentHint(hint);
+        }
+
+        // Автоматичне приховування підказки через 3 секунди
+        setTimeout(() => setAlignmentHint(null), 3000);
+      } catch (err) {
+        console.warn('Помилка аналізу фото:', err);
+        setAlignmentHint('❗️Не вдалося проаналізувати фото');
+        setTimeout(() => setAlignmentHint(null), 3000);
+      }
     }
   };
 
@@ -549,6 +633,19 @@ function CameraScreen({ route }) {
               accessible={false} // Image is decorative; label provided on TouchableOpacity
             />
           </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              setAlignmentHelpEnabled(true);
+              Alert.alert(
+                'Підказки активовані',
+                'Тепер ви будете отримувати підказки про положення камери.'
+              );
+            }}
+            accessibilityLabel="Отримати підказки"
+          >
+            <Text style={{ color: '#fff' }}>Отримати підказки</Text>
+          </TouchableOpacity>
+
           {/* <TouchableOpacity
             onPress={async () => {
               const error = new Error('💥 TEST_PERMISSION_DENIED_SIMULATION');
@@ -578,7 +675,20 @@ function CameraScreen({ route }) {
             <Text style={{ color: '#fff' }}>🛠 Report Bug</Text>
           </TouchableOpacity>
         </View>
-
+        {alignmentHelpEnabled && alignmentHint && (
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 150,
+              alignSelf: 'center',
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              padding: 12,
+              borderRadius: 12,
+            }}
+          >
+            <Text style={{ color: 'white', fontSize: 16 }}>{alignmentHint}</Text>
+          </View>
+        )}
         <View style={styles.bottomControlsContainer}>
           <View style={styles.bottomControls}>
             <TouchableOpacity

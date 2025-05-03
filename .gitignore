@@ -15,6 +15,9 @@ npm-debug.*
 *.tsbuildinfo
 *.orig.*
 web-build/
+android/
+venv/
+__pycache__/
 
 # Logs
 npm-debug.log*

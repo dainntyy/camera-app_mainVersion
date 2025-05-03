@@ -8,12 +8,16 @@ import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Для збереження стану
+import * as tf from '@tensorflow/tfjs';
 
 import CameraScreen from '../components/CameraScreen';
 import IntroSlider from '../components/IntroSlider';
 import ReportBugScreen from '../components/ReportBugScreen';
 import ReferenceImageScreen from '../components/ReferenceImageScreen'; // новий екран
 import { log } from '../components/utils/logger';
+
+
+import '@tensorflow/tfjs-react-native';
 
 const Stack = createStackNavigator();
 
@@ -30,6 +34,13 @@ const Stack = createStackNavigator();
  */
 function App() {
   const [firstLaunch, setFirstLaunch] = useState(null); // Стан для перевірки, чи перший запуск
+
+  useEffect(() => {
+    async function prepare() {
+      await tf.ready();
+    }
+    prepare();
+  }, []);
 
   useEffect(() => {
     /**
