@@ -56,8 +56,17 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { View, TouchableOpacity, Image, StyleSheet, Text, Dimensions } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  Text,
+  Dimensions,
+  TouchableHighlight,
+} from 'react-native';
 import { CameraView } from 'expo-camera';
+import { Ionicons } from '@expo/vector-icons';
 import { useCameraPermissions } from 'expo-camera';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as MediaLibrary from 'expo-media-library';
@@ -70,18 +79,22 @@ import { Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
 import { debounce } from 'lodash';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 
-import flipCameraIcon from './icons/flip_camera.png';
-import FlashOnIcon from './icons/flash_icon.png';
-import FlashOffIcon from './icons/flash_off.png';
-import RefIcon from './icons/ref_icon.png';
-import RefOffIcon from './icons/ref_off_icon.png';
 // import alignWithReference from './utils/imageAlignment';
 import analyzeImage from './utils/analyzeImage';
 // import log from './utils/logger';
 import { logToFile, log, rotateLogsIfNeeded } from './utils/logger';
 import i18n from './utils/i18n';
+import CustomButton from './Button';
+import ZoomControls from './ZoomControls';
 
+/**
+ *
+ * @param screen
+ * @param functionName
+ */
 const getContextInfo = async (screen, functionName) => {
   return {
     screen,
@@ -119,6 +132,14 @@ function CameraScreen({ route }) {
   const cameraRef = useRef(null);
   const [windowWidth, setWindowWidth] = useState(0);
   const [windowHeight, setWindowHeight] = useState(0);
+
+  // states for buttons
+  const [zoom, setZoom] = useState(0);
+  const [showZoomControls, setShowZoomControls] = useState(false);
+
+  /**
+   *
+   */
   const generateErrorId = () => `ERR_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
   let errorId;
@@ -305,6 +326,9 @@ function CameraScreen({ route }) {
    * @returns {Promise<void>}
    */
 
+  /**
+   *
+   */
   const takePicture = async () => {
     if (!cameraRef.current) return;
 
@@ -348,41 +372,6 @@ function CameraScreen({ route }) {
       if (alignmentHelpEnabled && referencePhoto) {
         await maybeAnalyzeImage(finalUri, referencePhoto);
       }
-      // if (referencePhoto) {
-      //   try {
-      //     console.log('[DEBUG] Calling analyzeImage with', finalUri, referencePhoto);
-      //     const result = await analyzeImage(finalUri, referencePhoto);
-      //     console.log('Alignment result:', result);
-      //     let hint;
-
-      //     if (result.confidence >= 0.85 && result.tip === 'Добре вирівняно') {
-      //       setAlignmentHint('✅ Чудово! Фото добре вирівняне.');
-      //     } else {
-      //       switch (result.alignment) {
-      //         case 'left':
-      //           hint = '🔄 Вирівняй камеру лівіше';
-      //           break;
-      //         case 'right':
-      //           hint = '🔄 Вирівняй камеру правіше';
-      //           break;
-      //         case 'up':
-      //           hint = '🔼 Нахили камеру вгору';
-      //           break;
-      //         case 'down':
-      //           hint = '🔽 Нахили камеру вниз';
-      //           break;
-      //       }
-      //       setAlignmentHint(hint);
-      //     }
-
-      //     // Автоматичне приховування підказки через 3 секунди
-      //     setTimeout(() => setAlignmentHint(null), 3000);
-      //   } catch (err) {
-      //     console.warn('Помилка аналізу фото:', err);
-      //     setAlignmentHint('❗️Не вдалося проаналізувати фото');
-      //     setTimeout(() => setAlignmentHint(null), 3000);
-      //   }
-      // }
 
       log.info('[I031] Photo saved to Media Library');
       console.log(`[PERF] takePicture duration: ${Date.now() - start}ms`);
@@ -407,6 +396,9 @@ function CameraScreen({ route }) {
         { text: i18n.t('alert_ok') },
         {
           text: i18n.t('alert_report'),
+          /**
+           *
+           */
           onPress: () => logToFile(`[REPORT] User reported error ID ${errorId}`),
         },
       ]);
@@ -415,6 +407,11 @@ function CameraScreen({ route }) {
     }
   };
 
+  /**
+   *
+   * @param finalUri
+   * @param referencePhoto
+   */
   const maybeAnalyzeImage = async (finalUri, referencePhoto) => {
     if (!alignmentHelpEnabled) return;
 
@@ -455,6 +452,10 @@ function CameraScreen({ route }) {
     }
   };
 
+  /**
+   *
+   * @param uri
+   */
   const savePhoto = async uri => {
     const asset = await MediaLibrary.createAssetAsync(uri);
     const albumName = 'CameraApp';
@@ -559,6 +560,9 @@ function CameraScreen({ route }) {
         { text: i18n.t('alert_ok') },
         {
           text: i18n.t('alert_report'),
+          /**
+           *
+           */
           onPress: () => {
             logToFile(`[REPORT] User reported gallery error ID ${errorId}`);
           },
@@ -576,165 +580,218 @@ function CameraScreen({ route }) {
   };
 
   return (
-    <View style={styles.container}>
-      <CameraView style={styles.camera} facing={type} ref={cameraRef} flash={flashMode}>
-        <View style={styles.overlayContainer}>
-          {referencePhoto ? (
-            <Image
-              source={{ uri: referencePhoto }}
-              style={[
-                styles.overlayImage,
-                {
+    <SafeAreaView style={styles.container}>
+      <View style={{ flex: 3, borderRadius: 10, overflow: 'hidden' }}>
+        <CameraView
+          style={styles.camera}
+          facing={type}
+          ref={cameraRef}
+          flash={flashMode}
+          zoom={zoom}
+          resizeMode="cover"
+        >
+          <View style={styles.overlayContainer}>
+            {referencePhoto && (
+              <Image
+                source={{ uri: referencePhoto }}
+                style={{
                   opacity: opacity,
-                  width: windowWidth,
-                  height: windowHeight,
                   position: 'absolute',
                   top: 0,
                   left: 0,
-                },
-              ]}
-            />
-          ) : null}
-        </View>
-        <View style={styles.header} />
-        <View style={styles.topControls}>
-          <TouchableOpacity
-            testID="toggle-camera-button"
-            onPress={toggleCameraType}
-            style={styles.iconButton}
-            accessibilityLabel="Toggle camera"
-          >
-            <Image
-              source={flipCameraIcon}
-              style={styles.iconImage}
-              accessible={false} // Image is decorative; label provided on TouchableOpacity
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            testID="toggle-flash-button"
-            onPress={toggleFlash}
-            style={styles.iconButton}
-            accessibilityLabel={`Flash ${flashMode === 'off' ? 'off' : 'on'}`}
-          >
-            <Image
-              source={flashMode === 'off' ? FlashOffIcon : FlashOnIcon}
-              style={styles.iconImage}
-              accessible={false} // Image is decorative; label provided on TouchableOpacity
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={clearReferencePhoto}
-            style={styles.iconButton}
-            accessibilityLabel="Clear reference photo"
-          >
-            <Image
-              source={RefOffIcon}
-              style={styles.iconImage}
-              accessible={false} // Image is decorative; label provided on TouchableOpacity
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              setAlignmentHelpEnabled(true);
-              Alert.alert(
-                'Підказки активовані',
-                'Тепер ви будете отримувати підказки про положення камери.'
-              );
-            }}
-            accessibilityLabel="Отримати підказки"
-          >
-            <Text style={{ color: '#fff' }}>Отримати підказки</Text>
-          </TouchableOpacity>
-
-          {/* <TouchableOpacity
-            onPress={async () => {
-              const error = new Error('💥 TEST_PERMISSION_DENIED_SIMULATION');
-              const errorId = `ERR_${Date.now()}`;
-              const context = await getContextInfo('CameraScreen', 'simulatePermission');
-
-              log.error(`[${errorId}] Permission error test`, context);
-              logToFile(`[ERROR] [${errorId}] Permission error test: ${JSON.stringify(context)}`);
-              Alert.alert('Simulated Permission Error', 'This is just a test.');
-              readLogFile();
-            }}
-            style={styles.permissionButton}
-          >
-            <Text style={styles.permissionButtonText}>Simulate Permission Error</Text>
-          </TouchableOpacity> */}
-          <TouchableOpacity
-            onPress={() => navigation.navigate('ReportBugScreen')}
-            style={{
-              position: 'absolute',
-              bottom: 160,
-              right: 20,
-              backgroundColor: '#f33',
-              padding: 10,
-              borderRadius: 8,
-            }}
-          >
-            <Text style={{ color: '#fff' }}>🛠 Report Bug</Text>
-          </TouchableOpacity>
-        </View>
-        {alignmentHelpEnabled && alignmentHint && (
-          <View
-            style={{
-              position: 'absolute',
-              bottom: 150,
-              alignSelf: 'center',
-              backgroundColor: 'rgba(0,0,0,0.7)',
-              padding: 12,
-              borderRadius: 12,
-            }}
-          >
-            <Text style={{ color: 'white', fontSize: 16 }}>{alignmentHint}</Text>
-          </View>
-        )}
-        <View style={styles.bottomControlsContainer}>
-          <View style={styles.bottomControls}>
-            <TouchableOpacity
-              onPress={pickReferenceImage}
-              style={styles.iconButton}
-              accessibilityLabel="Select reference photo"
-            >
-              <Image source={RefIcon} style={styles.iconImage} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              testID="capture-button"
-              onPress={takePicture}
-              style={styles.captureButton}
-              accessibilityLabel="Capture photo"
-            >
-              <View style={styles.captureCircle} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              testID="open-gallery-button"
-              onPress={openGallery}
-              style={styles.iconButton}
-              accessibilityLabel="Open Galery"
-            >
-              {lastPhotoUri ? (
-                <Image source={{ uri: lastPhotoUri }} style={styles.galleryImage} />
-              ) : (
-                <Text style={styles.iconPlaceholder}>Gallery</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-          {referencePhoto && (
-            <View style={styles.sliderContainer}>
-              <Text style={styles.sliderLabel}>Opacity</Text>
-              <Slider
-                style={styles.slider}
-                minimumValue={0}
-                maximumValue={1}
-                value={opacity}
-                onValueChange={setOpacity}
+                  right: 0,
+                  bottom: 0,
+                }}
+                resizeMode="contain"
               />
+            )}
+          </View>
+          {alignmentHelpEnabled && alignmentHint && (
+            <View
+              style={{
+                position: 'absolute',
+                bottom: 150,
+                alignSelf: 'center',
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                padding: 12,
+                borderRadius: 12,
+              }}
+            >
+              <Text style={{ color: 'white', fontSize: 16 }}>{alignmentHint}</Text>
             </View>
           )}
-          <View style={styles.footer} />
+          <View style={styles.bottomControlsContainer}>
+            {referencePhoto && (
+              <View style={styles.sliderContainer}>
+                <Text style={styles.sliderLabel}>Opacity</Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0.2}
+                  maximumValue={0.9}
+                  value={opacity}
+                  valueLabelDisplay="auto"
+                  onValueChange={setOpacity}
+                  minimumTrackTintColor="#00DDDD" // колір залитої частини
+                  maximumTrackTintColor="#2E2F3E" // колір незалитої частини (фон)
+                  thumbTintColor="#ffffff" // білий thumb
+                />
+              </View>
+            )}
+          </View>
+        </CameraView>
+        <BlurView
+          intensity={100}
+          tint="dark"
+          style={{
+            flex: 1,
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            padding: 10,
+          }}
+          experimentalBlurMethod="dimezisBlurView"
+        >
+          <Text
+            style={{
+              color: 'white',
+            }}
+          >
+            Zoom: x{(10 * zoom).toFixed(1)}
+          </Text>
+        </BlurView>
+      </View>
+      {showZoomControls ? (
+        <ZoomControls
+          setZoom={setZoom}
+          setShowZoomControls={setShowZoomControls}
+          zoom={zoom ?? 1}
+        />
+      ) : (
+        <View style={{ flex: 1 }}>
+          {/* top buttons */}
+          <View style={{ flex: 0.7, flexDirection: 'row', justifyContent: 'space-evenly' }}>
+            <CustomButton
+              iconName="camera-reverse-outline"
+              onPress={toggleCameraType}
+              containerStyle={{ alignSelf: 'center' }}
+              accessibilityLabel="Toggle camera"
+              testID="toggle-camera-button"
+            />
+            <CustomButton
+              iconName={flashMode === 'on' ? 'flash-outline' : 'flash-off-outline'}
+              onPress={toggleFlash}
+              containerStyle={{ alignSelf: 'center' }}
+              accessibilityLabel={`Flash ${flashMode === 'off' ? 'off' : 'on'}`}
+              testID="toggle-flash-button"
+            />
+            <CustomButton
+              iconName="search-outline"
+              onPress={() => setShowZoomControls(s => !s)}
+              containerStyle={{ alignSelf: 'center' }}
+            />
+            <CustomButton
+              iconName="color-wand"
+              onPress={() => {
+                setAlignmentHelpEnabled(prev => {
+                  const newValue = !prev;
+
+                  Alert.alert(
+                    newValue ? 'Tips enabled' : 'Tips disabled',
+                    newValue
+                      ? 'You will now receive tips about camera position.'
+                      : 'Camera tips have been turned off.'
+                  );
+
+                  return newValue;
+                });
+              }}
+              containerStyle={{ alignSelf: 'center' }}
+              accessibilityLabel="Smart tips"
+            />
+
+            <CustomButton
+              iconName="bug-outline"
+              onPress={() => navigation.navigate('ReportBugScreen')}
+              style={{
+                position: 'absolute',
+                bottom: 160,
+                right: 20,
+                backgroundColor: '#f33',
+                padding: 10,
+                borderRadius: 8,
+              }}
+              containerStyle={{ alignSelf: 'center' }}
+              accessibilityLabel="Report a problem"
+            />
+            <CustomButton
+              iconName="settings-outline"
+              // onPress={() => router.push('/_sitemap')}
+              containerStyle={{ alignSelf: 'center' }}
+            />
+
+            {/* <TouchableOpacity
+              onPress={async () => {
+                const error = new Error('💥 TEST_PERMISSION_DENIED_SIMULATION');
+                const errorId = `ERR_${Date.now()}`;
+                const context = await getContextInfo('CameraScreen', 'simulatePermission');
+
+                log.error(`[${errorId}] Permission error test`, context);
+                logToFile(`[ERROR] [${errorId}] Permission error test: ${JSON.stringify(context)}`);
+                Alert.alert('Simulated Permission Error', 'This is just a test.');
+                readLogFile();
+              }}
+              style={styles.permissionButton}
+            >
+              <Text style={styles.permissionButtonText}>Simulate Permission Error</Text>
+            </TouchableOpacity> */}
+          </View>
+
+          {/* bottom buttons */}
+          <View
+            style={{
+              flex: 1.1,
+              flexDirection: 'row',
+              justifyContent: 'space-evenly',
+              alignItems: 'center',
+            }}
+          >
+            {referencePhoto && (
+              <>
+                <CustomButton
+                  iconName="close-circle-outline"
+                  onPress={clearReferencePhoto}
+                  containerStyle={{ alignSelf: 'center' }}
+                  accessibilityLabel="Clear reference photo"
+                />
+              </>
+            )}
+            <CustomButton
+              iconName="image"
+              onPress={pickReferenceImage}
+              containerStyle={{ alignSelf: 'center' }}
+              accessibilityLabel="Select reference photo"
+            />
+            <TouchableHighlight>
+              <Ionicons
+                name="radio-button-on-sharp"
+                testID="capture-button"
+                size={65}
+                onPress={takePicture}
+                color="white"
+                accessibilityLabel="Capture photo"
+              />
+            </TouchableHighlight>
+            <CustomButton
+              iconName="images-outline"
+              onPress={openGallery}
+              containerStyle={{ alignSelf: 'center' }}
+              accessibilityLabel="Open Galery"
+              testID="open-gallery-button"
+            />
+          </View>
         </View>
-      </CameraView>
-    </View>
+      )}
+    </SafeAreaView>
   );
 }
 
@@ -756,22 +813,6 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
   },
-  header: {
-    top: 0,
-    left: 0,
-    right: 0,
-    position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    height: 100,
-  },
-  topControls: {
-    position: 'absolute',
-    top: 100,
-    left: 10,
-    right: 10,
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-  },
   bottomControlsContainer: {
     position: 'absolute',
     bottom: 0,
@@ -781,47 +822,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,
-  },
-  footer: {
-    ...StyleSheet.absoluteFillObject, // Зробити фон абсолютним в межах контейнера
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Напівпрозорий фон
-    zIndex: -1,
-  },
-  bottomControls: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    width: '100%',
-    position: 'absolute', // Позиціонування кнопок поверх фону
-    bottom: 30,
-  },
-  iconButton: {
-    padding: 10,
-  },
-  captureButton: {
-    alignSelf: 'center',
-  },
-  captureCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: 'white',
-    borderWidth: 5,
-    borderColor: 'gray',
-  },
-  galleryImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
-  },
-  iconPlaceholder: {
-    fontSize: 12,
-    color: 'white',
-  },
-  iconImage: {
-    width: 40,
-    height: 40,
   },
   permissionButton: {
     backgroundColor: 'blue',
@@ -833,17 +833,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   sliderContainer: {
+    padding: 20,
     width: '100%',
-    padding: 10,
+    borderRadius: 16,
     alignItems: 'center',
-    bottom: 100,
   },
   sliderLabel: {
     color: 'white',
-    marginBottom: 5,
+    marginBottom: 10,
+    fontWeight: 'bold',
+    fontSize: 18,
   },
   slider: {
     width: '80%',
+    height: 50,
   },
 });
 

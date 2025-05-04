@@ -16,7 +16,6 @@ import ReportBugScreen from '../components/ReportBugScreen';
 import ReferenceImageScreen from '../components/ReferenceImageScreen'; // новий екран
 import { log } from '../components/utils/logger';
 
-
 import '@tensorflow/tfjs-react-native';
 
 const Stack = createStackNavigator();
@@ -36,6 +35,9 @@ function App() {
   const [firstLaunch, setFirstLaunch] = useState(null); // Стан для перевірки, чи перший запуск
 
   useEffect(() => {
+    /**
+     *
+     */
     async function prepare() {
       await tf.ready();
     }

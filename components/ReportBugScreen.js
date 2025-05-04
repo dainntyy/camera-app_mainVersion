@@ -5,12 +5,18 @@ import * as ImagePicker from 'expo-image-picker';
 
 import { getLogFileContent, logFileUri } from '../components/utils/logger';
 
+/**
+ *
+ */
 export default function ReportBugScreen() {
   const [steps, setSteps] = useState('');
   const [systemInfo, setSystemInfo] = useState('');
   const [screenshots, setScreenshots] = useState([]);
   const [sending, setSending] = useState(false);
 
+  /**
+   *
+   */
   const pickScreenshots = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -24,10 +30,16 @@ export default function ReportBugScreen() {
       setScreenshots([...screenshots, ...result.assets]);
     }
   };
+  /**
+   *
+   */
   const clearScreenshots = () => {
     setScreenshots([]);
   };
 
+  /**
+   *
+   */
   const sendReport = async () => {
     try {
       setSending(true);

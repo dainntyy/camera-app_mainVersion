@@ -106,6 +106,10 @@ function ReferenceImageScreen() {
     console.log(`[PERF] Gallery images load: ${Date.now() - start}ms`);
   };
 
+  /**
+   *
+   * @param uri
+   */
   const optimizeOverlayImage = async uri => {
     const result = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 1000 } }], {
       compress: 0.6,
@@ -114,6 +118,10 @@ function ReferenceImageScreen() {
     return result.uri;
   };
 
+  /**
+   *
+   * @param uri
+   */
   const cacheOverlayImage = async uri => {
     const fileName = uri.split('/').pop();
     const cachedUri = `${FileSystem.cacheDirectory}${fileName}`;
@@ -127,7 +135,6 @@ function ReferenceImageScreen() {
     await FileSystem.moveAsync({ from: result.uri, to: cachedUri });
     return cachedUri;
   };
-
 
   // TODO: fix template pictures choosing
 
@@ -187,7 +194,11 @@ function ReferenceImageScreen() {
    * @description Navigates to Camera screen with selected image
    * @description[uk] Переходить на екран камери з обраним зображенням
    */
-  
+
+  /**
+   *
+   * @param selected
+   */
   const handleConfirmSelection = async selected => {
     try {
       let resolvedUri = null;

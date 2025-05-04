@@ -23,6 +23,10 @@ const config = {
 export const log = logger.createLogger(config);
 
 // ✅ Запис логів у файл
+/**
+ *
+ * @param message
+ */
 export const logToFile = async message => {
   const timestamp = new Date().toISOString();
   const formatted = `[${timestamp}] ${message}\n`;
@@ -33,6 +37,9 @@ export const logToFile = async message => {
 };
 
 // ✅ Ротація логів за розміром
+/**
+ *
+ */
 export const rotateLogsIfNeeded = async () => {
   try {
     const info = await FileSystem.getInfoAsync(logFilePath);
@@ -49,6 +56,9 @@ export const rotateLogsIfNeeded = async () => {
 };
 
 // ✅ Читання вмісту лог-файлу (для перегляду/відправки)
+/**
+ *
+ */
 export const getLogFileContent = async () => {
   try {
     const info = await FileSystem.getInfoAsync(logFilePath);
@@ -65,6 +75,11 @@ export const getLogFileContent = async () => {
 export const logFileUri = logFilePath;
 
 // ✅ Готова функція логування помилки з контекстом
+/**
+ *
+ * @param message
+ * @param context
+ */
 export const logError = async (message, context = {}) => {
   const timestamp = new Date().toISOString();
   const entry = `[${timestamp}] ERROR: ${message}\nContext: ${JSON.stringify(context)}\n\n`;

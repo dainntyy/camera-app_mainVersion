@@ -1,5 +1,10 @@
 //analyzeImage.js
 
+/**
+ *
+ * @param userUri
+ * @param refUri
+ */
 const analyzeImage = async (userUri, refUri) => {
   console.log('[DEBUG] analyzeImage() start');
 
