@@ -91,9 +91,13 @@ import CustomButton from './Button';
 import ZoomControls from './ZoomControls';
 
 /**
+ * Gathers contextual information about the app and environment for logging or error reporting.
  *
- * @param screen
- * @param functionName
+ * @async
+ * @function getContextInfo
+ * @param {string} screen - The screen name where the function is called.
+ * @param {string} functionName - The name of the function being executed.
+ * @returns {Promise<object>} An object containing screen name, function name, platform, app version, and timestamp.
  */
 const getContextInfo = async (screen, functionName) => {
   return {
@@ -138,7 +142,9 @@ function CameraScreen({ route }) {
   const [showZoomControls, setShowZoomControls] = useState(false);
 
   /**
-   *
+   * Generates random Error ID for reporting and documenting bugs
+   * @constant generateErrorId
+   * @returns {number}
    */
   const generateErrorId = () => `ERR_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
@@ -309,7 +315,7 @@ function CameraScreen({ route }) {
   if (!mediaLibraryPermission?.granted) {
     return (
       <View style={styles.container}>
-        <Text style={{ textAlign: 'center' }}>We need your permission to access media library</Text>
+        <Text style={styles.premissionText}>We need your permission to access media library</Text>
         <TouchableOpacity onPress={requestMediaLibraryPermission} style={styles.permissionButton}>
           <Text style={styles.permissionButtonText}>Grant Media Library Permission</Text>
         </TouchableOpacity>
@@ -324,10 +330,6 @@ function CameraScreen({ route }) {
    * @function takePicture
    * @description[uk] Робить фото за допомогою камери та при необхідності віддзеркалює його для фронтальної камери
    * @returns {Promise<void>}
-   */
-
-  /**
-   *
    */
   const takePicture = async () => {
     if (!cameraRef.current) return;
@@ -397,7 +399,10 @@ function CameraScreen({ route }) {
         {
           text: i18n.t('alert_report'),
           /**
+           * Logs a user-reported error message to a file.
            *
+           * @function
+           * @returns {void}
            */
           onPress: () => logToFile(`[REPORT] User reported error ID ${errorId}`),
         },
@@ -408,9 +413,14 @@ function CameraScreen({ route }) {
   };
 
   /**
+   * Sends the captured image and reference image to an alignment analysis API,
+   * and sets an appropriate hint for the user based on the result.
    *
-   * @param finalUri
-   * @param referencePhoto
+   * @async
+   * @function maybeAnalyzeImage
+   * @param {string} finalUri - URI of the captured image to analyze.
+   * @param {string|null} referencePhoto - URI of the reference image for alignment comparison.
+   * @returns {Promise<void>} No return value; sets hint text and logs results.
    */
   const maybeAnalyzeImage = async (finalUri, referencePhoto) => {
     if (!alignmentHelpEnabled) return;
@@ -422,51 +432,33 @@ function CameraScreen({ route }) {
         console.log('Alignment result:', result);
         let hint;
 
-        if (result.confidence >= 0.85 && result.tip === 'Добре вирівняно') {
-          setAlignmentHint('✅ Чудово! Фото добре вирівняне.');
+        if (result.confidence >= 0.85 && result.tip === '✅ Good alignment') {
+          hint = '✅ Good alignment!';
         } else {
           switch (result.alignment) {
             case 'left':
-              hint = '🔄 Вирівняй камеру лівіше';
+              hint = '🔄 Move the camera to the left';
               break;
             case 'right':
-              hint = '🔄 Вирівняй камеру правіше';
+              hint = '🔄 Move the camera to the right';
               break;
             case 'up':
-              hint = '🔼 Нахили камеру вгору';
+              hint = '🔼 Tilt the camera up';
               break;
             case 'down':
-              hint = '🔽 Нахили камеру вниз';
+              hint = '🔽 Tilt the camera down';
               break;
           }
-          setAlignmentHint(hint);
         }
-
+        setAlignmentHint(hint);
         // Автоматичне приховування підказки через 3 секунди
         setTimeout(() => setAlignmentHint(null), 3000);
       } catch (err) {
-        console.warn('Помилка аналізу фото:', err);
-        setAlignmentHint('❗️Не вдалося проаналізувати фото');
+        console.warn('Error to analyze photo:', err);
+        setAlignmentHint(`❗️ Couldn't analyze photo`);
         setTimeout(() => setAlignmentHint(null), 3000);
       }
     }
-  };
-
-  /**
-   *
-   * @param uri
-   */
-  const savePhoto = async uri => {
-    const asset = await MediaLibrary.createAssetAsync(uri);
-    const albumName = 'CameraApp';
-    let album = await MediaLibrary.getAlbumAsync(albumName);
-    if (!album) {
-      album = await MediaLibrary.createAlbumAsync(albumName, asset, false);
-    } else {
-      await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
-    }
-    setPhotoUri(uri);
-    log.info('[I031] Photo saved to Media Library');
   };
 
   /**
@@ -561,7 +553,9 @@ function CameraScreen({ route }) {
         {
           text: i18n.t('alert_report'),
           /**
+           * Logs a gallery-related error reported by the user to a file.
            *
+           * @function
            */
           onPress: () => {
             logToFile(`[REPORT] User reported gallery error ID ${errorId}`);
@@ -581,7 +575,7 @@ function CameraScreen({ route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ flex: 3, borderRadius: 10, overflow: 'hidden' }}>
+      <View style={styles.cameraConteiner}>
         <CameraView
           style={styles.camera}
           facing={type}
@@ -594,33 +588,17 @@ function CameraScreen({ route }) {
             {referencePhoto && (
               <Image
                 source={{ uri: referencePhoto }}
-                style={{
-                  opacity: opacity,
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                }}
+                style={[styles.overlayImage, { opacity: opacity }]}
                 resizeMode="contain"
               />
             )}
           </View>
           {alignmentHelpEnabled && alignmentHint && (
-            <View
-              style={{
-                position: 'absolute',
-                bottom: 150,
-                alignSelf: 'center',
-                backgroundColor: 'rgba(0,0,0,0.7)',
-                padding: 12,
-                borderRadius: 12,
-              }}
-            >
-              <Text style={{ color: 'white', fontSize: 16 }}>{alignmentHint}</Text>
+            <View style={styles.alignmentConteiner}>
+              <Text style={styles.alignmentText}>{alignmentHint}</Text>
             </View>
           )}
-          <View style={styles.bottomControlsContainer}>
+          <View>
             {referencePhoto && (
               <View style={styles.sliderContainer}>
                 <Text style={styles.sliderLabel}>Opacity</Text>
@@ -642,22 +620,10 @@ function CameraScreen({ route }) {
         <BlurView
           intensity={100}
           tint="dark"
-          style={{
-            flex: 1,
-            position: 'absolute',
-            bottom: 0,
-            right: 0,
-            padding: 10,
-          }}
+          style={styles.blurContainer}
           experimentalBlurMethod="dimezisBlurView"
         >
-          <Text
-            style={{
-              color: 'white',
-            }}
-          >
-            Zoom: x{(10 * zoom).toFixed(1)}
-          </Text>
+          <Text style={styles.blurText}>Zoom: x{(10 * zoom).toFixed(1)}</Text>
         </BlurView>
       </View>
       {showZoomControls ? (
@@ -667,9 +633,9 @@ function CameraScreen({ route }) {
           zoom={zoom ?? 1}
         />
       ) : (
-        <View style={{ flex: 1 }}>
+        <View style={styles.container}>
           {/* top buttons */}
-          <View style={{ flex: 0.7, flexDirection: 'row', justifyContent: 'space-evenly' }}>
+          <View style={styles.topButtonsContainer}>
             <CustomButton
               iconName="camera-reverse-outline"
               onPress={toggleCameraType}
@@ -712,14 +678,6 @@ function CameraScreen({ route }) {
             <CustomButton
               iconName="bug-outline"
               onPress={() => navigation.navigate('ReportBugScreen')}
-              style={{
-                position: 'absolute',
-                bottom: 160,
-                right: 20,
-                backgroundColor: '#f33',
-                padding: 10,
-                borderRadius: 8,
-              }}
               containerStyle={{ alignSelf: 'center' }}
               accessibilityLabel="Report a problem"
             />
@@ -747,14 +705,7 @@ function CameraScreen({ route }) {
           </View>
 
           {/* bottom buttons */}
-          <View
-            style={{
-              flex: 1.1,
-              flexDirection: 'row',
-              justifyContent: 'space-evenly',
-              alignItems: 'center',
-            }}
-          >
+          <View style={styles.bottomButtonsContainer}>
             {referencePhoto && (
               <>
                 <CustomButton
@@ -799,6 +750,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  cameraConteiner: {
+    flex: 3,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  premissionText: {
+    textAlign: 'center',
+  },
   camera: {
     flex: 1,
   },
@@ -807,21 +766,45 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   overlayImage: {
     position: 'absolute',
     top: 0,
     left: 0,
+    right: 0,
+    bottom: 0,
   },
-  bottomControlsContainer: {
+  alignmentConteiner: {
+    position: 'absolute',
+    bottom: 150,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    padding: 12,
+    borderRadius: 12,
+  },
+  alignmentText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  blurContainer: {
+    flex: 1,
     position: 'absolute',
     bottom: 0,
-    left: 0,
     right: 0,
-    height: 150,
-    justifyContent: 'center',
+    padding: 10,
+  },
+  blurText: {
+    color: 'white',
+  },
+  topButtonsContainer: {
+    flex: 0.7,
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+  },
+  bottomButtonsContainer: {
+    flex: 1.1,
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
     alignItems: 'center',
-    zIndex: 1,
   },
   permissionButton: {
     backgroundColor: 'blue',

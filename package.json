@@ -36,6 +36,7 @@
     "@tensorflow/tfjs-react-native": "^1.0.0",
     "camera-app": "file:",
     "expo": "^53.0.4",
+    "expo-blur": "~14.1.4",
     "expo-camera": "~16.1.6",
     "expo-constants": "~17.1.4",
     "expo-dev-client": "~5.1.7",
@@ -73,8 +74,7 @@
     "react-native-screens": "~4.10.0",
     "react-native-vector-icons": "^10.2.0",
     "react-native-vision-camera": "^4.6.4",
-    "react-native-web": "^0.20.0",
-    "expo-blur": "~14.1.4"
+    "react-native-web": "^0.20.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",

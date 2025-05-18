@@ -36,6 +36,7 @@ export default [
       'jest.config.js',
       'tsconfig.js',
       'docs/',
+      'venv/',
     ],
   },
   {
