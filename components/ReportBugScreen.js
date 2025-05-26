@@ -2,21 +2,16 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, Image, ScrollView } from 'react-native';
 import * as MailComposer from 'expo-mail-composer';
 import * as ImagePicker from 'expo-image-picker';
+import i18n from './utils/i18n';
 
 import { getLogFileContent, logFileUri } from '../components/utils/logger';
 
-/**
- *
- */
 export default function ReportBugScreen() {
   const [steps, setSteps] = useState('');
   const [systemInfo, setSystemInfo] = useState('');
   const [screenshots, setScreenshots] = useState([]);
   const [sending, setSending] = useState(false);
 
-  /**
-   *
-   */
   const pickScreenshots = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -27,25 +22,17 @@ export default function ReportBugScreen() {
     });
 
     if (!result.canceled) {
-      setScreenshots([...screenshots, ...result.assets]);
+      setScreenshots(prev => [...prev, ...result.assets]);
     }
   };
-  /**
-   *
-   */
-  const clearScreenshots = () => {
-    setScreenshots([]);
-  };
 
-  /**
-   *
-   */
+  const clearScreenshots = () => setScreenshots([]);
+
   const sendReport = async () => {
     try {
       setSending(true);
       const log = await getLogFileContent();
-
-      const body = `System Info:\n${systemInfo}\n\nSteps to Reproduce:\n${steps}\n\nLogs:\n${log}`;
+      const body = `${i18n.t('rb_system_info')}:\n${systemInfo}\n\n${i18n.t('rb_steps')}:\n${steps}\n\nLogs:\n${log}`;
       const attachments = [logFileUri, ...screenshots.map(s => s.uri)];
 
       await MailComposer.composeAsync({
@@ -55,12 +42,12 @@ export default function ReportBugScreen() {
         attachments,
       });
 
-      Alert.alert('✅ Report Sent', 'Thank you for your feedback!');
+      Alert.alert(i18n.t('rb_sent_title'), i18n.t('rb_sent_msg'));
       setSteps('');
       setSystemInfo('');
       setScreenshots([]);
     } catch (error) {
-      Alert.alert('❌ Failed to Send', error.message);
+      Alert.alert(i18n.t('rb_fail_title'), error.message);
     } finally {
       setSending(false);
     }
@@ -68,29 +55,27 @@ export default function ReportBugScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.label}>System Info</Text>
-      <Text style={styles.placeholder}>Device info, OS version, app version...</Text>
+      <Text style={styles.label}>{i18n.t('rb_system_info')}</Text>
+      <Text style={styles.placeholder}>{i18n.t('rb_system_info_ph')}</Text>
       <TextInput
         multiline
-        placeholder="Device info, OS version, app version..."
+        placeholder={i18n.t('rb_system_info_ph')}
         style={styles.input}
         value={systemInfo}
         onChangeText={setSystemInfo}
-        required
       />
 
-      <Text style={styles.label}>Steps to Reproduce</Text>
-      <Text style={styles.placeholder}>Describe steps to reproduce the issue...</Text>
+      <Text style={styles.label}>{i18n.t('rb_steps')}</Text>
+      <Text style={styles.placeholder}>{i18n.t('rb_steps_ph')}</Text>
       <TextInput
         multiline
-        placeholder="Describe steps to reproduce the issue..."
+        placeholder={i18n.t('rb_steps_ph')}
         style={styles.input}
         value={steps}
         onChangeText={setSteps}
-        required
       />
 
-      <Button title="Attach Screenshots" onPress={pickScreenshots} />
+      <Button title={i18n.t('rb_attach_btn')} onPress={pickScreenshots} />
       <ScrollView horizontal style={styles.imageScroll}>
         {screenshots.map((img, index) => (
           <Image key={index} source={{ uri: img.uri }} style={styles.imagePreview} />
@@ -99,13 +84,13 @@ export default function ReportBugScreen() {
 
       {screenshots.length > 0 && (
         <View style={styles.clearButtonContainer}>
-          <Button title="Clear Screenshots" onPress={clearScreenshots} color="#cc0000" />
+          <Button title={i18n.t('rb_clear_btn')} onPress={clearScreenshots} color="#cc0000" />
         </View>
       )}
 
       <View style={{ marginTop: 20 }}>
         <Button
-          title={sending ? 'Sending...' : 'Send Report'}
+          title={sending ? i18n.t('rb_sending_btn') : i18n.t('rb_send_btn')}
           onPress={sendReport}
           disabled={sending}
         />
@@ -122,7 +107,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: 700,
+    fontWeight: '700',
     marginBottom: 6,
     marginTop: 14,
   },
@@ -138,8 +123,8 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     minHeight: 80,
-    textAlignVertical: 'top', // ✅ для multiline
-    fontSize: 16, // ✅ робить placeholder помітнішим
+    textAlignVertical: 'top',
+    fontSize: 16,
     color: '#000',
   },
   imageScroll: {
@@ -151,5 +136,8 @@ const styles = StyleSheet.create({
     height: 120,
     marginRight: 10,
     borderRadius: 8,
+  },
+  clearButtonContainer: {
+    marginTop: 10,
   },
 });

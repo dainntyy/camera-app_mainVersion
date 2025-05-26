@@ -655,6 +655,7 @@ function CameraScreen({ route }) {
               onPress={() => setShowZoomControls(s => !s)}
               containerStyle={{ alignSelf: 'center' }}
             />
+
             <CustomButton
               iconName="color-wand"
               onPress={() => {
@@ -662,10 +663,8 @@ function CameraScreen({ route }) {
                   const newValue = !prev;
 
                   Alert.alert(
-                    newValue ? 'Tips enabled' : 'Tips disabled',
-                    newValue
-                      ? 'You will now receive tips about camera position.'
-                      : 'Camera tips have been turned off.'
+                    newValue ? i18n.t('tips_enabled') : i18n.t('tips_disabled'),
+                    newValue ? i18n.t('tips_text') : i18n.t('notips_text')
                   );
 
                   return newValue;
@@ -683,7 +682,7 @@ function CameraScreen({ route }) {
             />
             <CustomButton
               iconName="settings-outline"
-              // onPress={() => router.push('/_sitemap')}
+              onPress={() => navigation.navigate('Settings')}
               containerStyle={{ alignSelf: 'center' }}
             />
 

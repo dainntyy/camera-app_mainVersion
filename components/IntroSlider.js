@@ -1,78 +1,47 @@
-/**
- * @file IntroSlider.js
- * @description Displays an onboarding slider for first-time users to explain the main features of the Camera App.
- * @description[uk] Відображає вступний слайдер для нових користувачів з поясненням основних функцій додатку камери.
- */
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
-import PropTypes from 'prop-types'; // Додаємо імпорт PropTypes
+import PropTypes from 'prop-types';
+import i18n from './utils/i18n';
 
-/**
- * A list of slides used in the introductory slider.
- * Each slide contains a title, description text, and background color.
- * @type {Array<{ key: string, title: string, text: string, backgroundColor: string }>}
- * @description[uk] Список слайдів для вступного слайдера. Кожен слайд містить заголовок, опис та колір фону.
- */
-
-const slides = [
-  {
-    key: '1',
-    title: 'Welcome to Camera App!',
-    text: 'This app helps you take photos with alignment features.',
-    backgroundColor: '#083e68',
-  },
-  {
-    key: '2',
-    title: 'Select Reference Photo',
-    text: 'You can select a reference photo from your gallery to overlay on the camera.',
-    backgroundColor: '#114f7e',
-  },
-  {
-    key: '3',
-    title: 'Use Camera Features',
-    text: 'Flip between the front and back cameras, and enable/disable the flash.',
-    backgroundColor: '#1363a0',
-  },
-  {
-    key: '4',
-    title: 'Capture and Save',
-    text: 'Take photos and save them to your gallery easily!',
-    backgroundColor: '#2c71a5',
-  },
-];
-
-/**
- * IntroSlider component – displays an introduction slider with usage instructions.
- *
- * @component
- * @param {object} props - Component props
- * @param {Function} props.onDone - Callback function triggered when the slider is finished
- * @returns {JSX.Element} The rendered intro slider component
- * @description[uk] Компонент IntroSlider - відображає вступний слайдер з інструкціями з використання.
- */
-
-/**
- *
- * @param root0
- * @param root0.onDone
- */
 function IntroSlider({ onDone }) {
-  /**
-   * Handles completion of the intro slider.
-   * Calls the onDone prop function if provided.
-   */
+  const slides = [
+    {
+      key: '1',
+      title: i18n.t('slide1_title'),
+      text: i18n.t('slide1_text'),
+      backgroundColor: '#083e68',
+    },
+    {
+      key: '2',
+      title: i18n.t('slide2_title'),
+      text: i18n.t('slide2_text'),
+      backgroundColor: '#114f7e',
+    },
+    {
+      key: '3',
+      title: i18n.t('slide3_title'),
+      text: i18n.t('slide3_text'),
+      backgroundColor: '#1363a0',
+    },
+    {
+      key: '4',
+      title: i18n.t('slide4_title'),
+      text: i18n.t('slide4_text'),
+      backgroundColor: '#2c71a5',
+    },
+  ];
+
   const handleDone = () => {
     if (onDone) {
-      onDone(); // Викликаємо пропс для завершення слайдера
+      onDone();
     }
   };
 
   return (
     <AppIntroSlider
-      renderItem={renderItem}
       data={slides}
+      renderItem={renderItem}
       onDone={handleDone}
       showSkipButton={true}
       onSkip={handleDone}
@@ -81,25 +50,15 @@ function IntroSlider({ onDone }) {
 }
 
 IntroSlider.propTypes = {
-  onDone: PropTypes.func.isRequired, // Додаємо перевірку PropTypes
+  onDone: PropTypes.func.isRequired,
 };
 
-/**
- * Renders a single slide in the intro slider.
- *
- * @param {object} param
- * @param {{ title: string, text: string, backgroundColor: string }} param.item - Slide data
- * @returns {JSX.Element} Rendered slide content
- * @description[uk] Відображає окремий слайд у вступному слайдері.
- */
-const renderItem = ({ item }) => {
-  return (
-    <View style={[styles.slide, { backgroundColor: item.backgroundColor }]}>
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.text}>{item.text}</Text>
-    </View>
-  );
-};
+const renderItem = ({ item }) => (
+  <View style={[styles.slide, { backgroundColor: item.backgroundColor }]}>
+    <Text style={styles.title}>{item.title}</Text>
+    <Text style={styles.text}>{item.text}</Text>
+  </View>
+);
 
 const styles = StyleSheet.create({
   slide: {
