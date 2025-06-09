@@ -575,118 +575,119 @@ function CameraScreen({ route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.cameraConteiner}>
-        <CameraView
-          style={styles.camera}
-          facing={type}
-          ref={cameraRef}
-          flash={flashMode}
-          zoom={zoom}
-          resizeMode="cover"
-        >
-          <View style={styles.overlayContainer}>
-            {referencePhoto && (
-              <Image
-                source={{ uri: referencePhoto }}
-                style={[styles.overlayImage, { opacity: opacity }]}
-                resizeMode="contain"
-              />
-            )}
+      <View style={{ flex: 3, position: 'relative' }}>
+        {alignmentHelpEnabled && alignmentHint && (
+          <View style={styles.alignmentContainer}>
+            <Text style={styles.alignmentText}>{alignmentHint}</Text>
           </View>
-          {alignmentHelpEnabled && alignmentHint && (
-            <View style={styles.alignmentConteiner}>
-              <Text style={styles.alignmentText}>{alignmentHint}</Text>
-            </View>
-          )}
-          <View>
-            {referencePhoto && (
-              <View style={styles.sliderContainer}>
-                <Text style={styles.sliderLabel}>Opacity</Text>
-                <Slider
-                  style={styles.slider}
-                  minimumValue={0.2}
-                  maximumValue={0.9}
-                  value={opacity}
-                  valueLabelDisplay="auto"
-                  onValueChange={setOpacity}
-                  minimumTrackTintColor="#00DDDD" // колір залитої частини
-                  maximumTrackTintColor="#2E2F3E" // колір незалитої частини (фон)
-                  thumbTintColor="#ffffff" // білий thumb
+        )}
+        <View style={styles.cameraConteiner}>
+          <CameraView
+            style={styles.camera}
+            facing={type}
+            ref={cameraRef}
+            flash={flashMode}
+            zoom={zoom}
+            resizeMode="cover"
+          >
+            <View style={styles.overlayContainer}>
+              {referencePhoto && (
+                <Image
+                  source={{ uri: referencePhoto }}
+                  style={[styles.overlayImage, { opacity: opacity }]}
+                  resizeMode="contain"
                 />
-              </View>
-            )}
-          </View>
-        </CameraView>
-        <BlurView
-          intensity={100}
-          tint="dark"
-          style={styles.blurContainer}
-          experimentalBlurMethod="dimezisBlurView"
-        >
-          <Text style={styles.blurText}>Zoom: x{(10 * zoom).toFixed(1)}</Text>
-        </BlurView>
-      </View>
-      {showZoomControls ? (
-        <ZoomControls
-          setZoom={setZoom}
-          setShowZoomControls={setShowZoomControls}
-          zoom={zoom ?? 1}
-        />
-      ) : (
-        <View style={styles.container}>
-          {/* top buttons */}
-          <View style={styles.topButtonsContainer}>
-            <CustomButton
-              iconName="camera-reverse-outline"
-              onPress={toggleCameraType}
-              containerStyle={{ alignSelf: 'center' }}
-              accessibilityLabel="Toggle camera"
-              testID="toggle-camera-button"
-            />
-            <CustomButton
-              iconName={flashMode === 'on' ? 'flash-outline' : 'flash-off-outline'}
-              onPress={toggleFlash}
-              containerStyle={{ alignSelf: 'center' }}
-              accessibilityLabel={`Flash ${flashMode === 'off' ? 'off' : 'on'}`}
-              testID="toggle-flash-button"
-            />
-            <CustomButton
-              iconName="search-outline"
-              onPress={() => setShowZoomControls(s => !s)}
-              containerStyle={{ alignSelf: 'center' }}
-            />
+              )}
+            </View>
+            <View>
+              {referencePhoto && (
+                <View style={styles.sliderContainer}>
+                  <Text style={styles.sliderLabel}>Opacity</Text>
+                  <Slider
+                    style={styles.slider}
+                    minimumValue={0.2}
+                    maximumValue={0.9}
+                    value={opacity}
+                    valueLabelDisplay="auto"
+                    onValueChange={setOpacity}
+                    minimumTrackTintColor="#00DDDD" // колір залитої частини
+                    maximumTrackTintColor="#2E2F3E" // колір незалитої частини (фон)
+                    thumbTintColor="#ffffff" // білий thumb
+                  />
+                </View>
+              )}
+            </View>
+          </CameraView>
+          <BlurView
+            intensity={100}
+            tint="dark"
+            style={styles.blurContainer}
+            experimentalBlurMethod="dimezisBlurView"
+          >
+            <Text style={styles.blurText}>Zoom: x{(10 * zoom).toFixed(1)}</Text>
+          </BlurView>
+        </View>
+        {showZoomControls ? (
+          <ZoomControls
+            setZoom={setZoom}
+            setShowZoomControls={setShowZoomControls}
+            zoom={zoom ?? 1}
+          />
+        ) : (
+          <View style={styles.container}>
+            {/* top buttons */}
+            <View style={styles.topButtonsContainer}>
+              <CustomButton
+                iconName="camera-reverse-outline"
+                onPress={toggleCameraType}
+                containerStyle={{ alignSelf: 'center' }}
+                accessibilityLabel="Toggle camera"
+                testID="toggle-camera-button"
+              />
+              <CustomButton
+                iconName={flashMode === 'on' ? 'flash-outline' : 'flash-off-outline'}
+                onPress={toggleFlash}
+                containerStyle={{ alignSelf: 'center' }}
+                accessibilityLabel={`Flash ${flashMode === 'off' ? 'off' : 'on'}`}
+                testID="toggle-flash-button"
+              />
+              <CustomButton
+                iconName="search-outline"
+                onPress={() => setShowZoomControls(s => !s)}
+                containerStyle={{ alignSelf: 'center' }}
+              />
 
-            <CustomButton
-              iconName="color-wand"
-              onPress={() => {
-                setAlignmentHelpEnabled(prev => {
-                  const newValue = !prev;
+              <CustomButton
+                iconName="color-wand"
+                onPress={() => {
+                  setAlignmentHelpEnabled(prev => {
+                    const newValue = !prev;
 
-                  Alert.alert(
-                    newValue ? i18n.t('tips_enabled') : i18n.t('tips_disabled'),
-                    newValue ? i18n.t('tips_text') : i18n.t('notips_text')
-                  );
+                    Alert.alert(
+                      newValue ? i18n.t('tips_enabled') : i18n.t('tips_disabled'),
+                      newValue ? i18n.t('tips_text') : i18n.t('notips_text')
+                    );
 
-                  return newValue;
-                });
-              }}
-              containerStyle={{ alignSelf: 'center' }}
-              accessibilityLabel="Smart tips"
-            />
+                    return newValue;
+                  });
+                }}
+                containerStyle={{ alignSelf: 'center' }}
+                accessibilityLabel="Smart tips"
+              />
 
-            <CustomButton
-              iconName="bug-outline"
-              onPress={() => navigation.navigate('ReportBugScreen')}
-              containerStyle={{ alignSelf: 'center' }}
-              accessibilityLabel="Report a problem"
-            />
-            <CustomButton
-              iconName="settings-outline"
-              onPress={() => navigation.navigate('Settings')}
-              containerStyle={{ alignSelf: 'center' }}
-            />
+              <CustomButton
+                iconName="bug-outline"
+                onPress={() => navigation.navigate('ReportBugScreen')}
+                containerStyle={{ alignSelf: 'center' }}
+                accessibilityLabel="Report a problem"
+              />
+              <CustomButton
+                iconName="settings-outline"
+                onPress={() => navigation.navigate('Settings')}
+                containerStyle={{ alignSelf: 'center' }}
+              />
 
-            {/* <TouchableOpacity
+              {/* <TouchableOpacity
               onPress={async () => {
                 const error = new Error('💥 TEST_PERMISSION_DENIED_SIMULATION');
                 const errorId = `ERR_${Date.now()}`;
@@ -701,46 +702,47 @@ function CameraScreen({ route }) {
             >
               <Text style={styles.permissionButtonText}>Simulate Permission Error</Text>
             </TouchableOpacity> */}
-          </View>
+            </View>
 
-          {/* bottom buttons */}
-          <View style={styles.bottomButtonsContainer}>
-            {referencePhoto && (
-              <>
-                <CustomButton
-                  iconName="close-circle-outline"
-                  onPress={clearReferencePhoto}
-                  containerStyle={{ alignSelf: 'center' }}
-                  accessibilityLabel="Clear reference photo"
-                />
-              </>
-            )}
-            <CustomButton
-              iconName="image"
-              onPress={pickReferenceImage}
-              containerStyle={{ alignSelf: 'center' }}
-              accessibilityLabel="Select reference photo"
-            />
-            <TouchableHighlight>
-              <Ionicons
-                name="radio-button-on-sharp"
-                testID="capture-button"
-                size={65}
-                onPress={takePicture}
-                color="white"
-                accessibilityLabel="Capture photo"
+            {/* bottom buttons */}
+            <View style={styles.bottomButtonsContainer}>
+              {referencePhoto && (
+                <>
+                  <CustomButton
+                    iconName="close-circle-outline"
+                    onPress={clearReferencePhoto}
+                    containerStyle={{ alignSelf: 'center' }}
+                    accessibilityLabel="Clear reference photo"
+                  />
+                </>
+              )}
+              <CustomButton
+                iconName="image"
+                onPress={pickReferenceImage}
+                containerStyle={{ alignSelf: 'center' }}
+                accessibilityLabel="Select reference photo"
               />
-            </TouchableHighlight>
-            <CustomButton
-              iconName="images-outline"
-              onPress={openGallery}
-              containerStyle={{ alignSelf: 'center' }}
-              accessibilityLabel="Open Galery"
-              testID="open-gallery-button"
-            />
+              <TouchableHighlight>
+                <Ionicons
+                  name="radio-button-on-sharp"
+                  testID="capture-button"
+                  size={65}
+                  onPress={takePicture}
+                  color="white"
+                  accessibilityLabel="Capture photo"
+                />
+              </TouchableHighlight>
+              <CustomButton
+                iconName="images-outline"
+                onPress={openGallery}
+                containerStyle={{ alignSelf: 'center' }}
+                accessibilityLabel="Open Galery"
+                testID="open-gallery-button"
+              />
+            </View>
           </View>
-        </View>
-      )}
+        )}
+      </View>
     </SafeAreaView>
   );
 }
@@ -769,21 +771,30 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    right: 0,
-    bottom: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: 1,
   },
-  alignmentConteiner: {
+  alignmentContainer: {
     position: 'absolute',
-    bottom: 150,
-    alignSelf: 'center',
+    bottom: 250,
+    left: 20,
+    right: 20,
     backgroundColor: 'rgba(0,0,0,0.7)',
     padding: 12,
     borderRadius: 12,
+    zIndex: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+
   alignmentText: {
     color: 'white',
     fontSize: 16,
+    textAlign: 'center',
+    zIndex: 9999,
   },
+
   blurContainer: {
     flex: 1,
     position: 'absolute',

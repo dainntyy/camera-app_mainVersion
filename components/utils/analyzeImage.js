@@ -20,7 +20,7 @@ const analyzeImage = async (userUri, refUri) => {
     type: 'image/jpeg',
   });
 
-  const response = await fetch('http://192.168.0.233:5000/analyze', {
+  const response = await fetch('http://192.168.64.6:5000/analyze', {
     method: 'POST',
     body: formData,
     headers: {
