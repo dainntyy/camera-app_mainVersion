@@ -11,6 +11,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { Asset } from 'expo-asset';
 
 /**
  * Screen component that allows the user to select a reference image
@@ -111,12 +112,20 @@ function ReferenceImageScreen() {
    * @param uri
    */
   const optimizeOverlayImage = async uri => {
-    const result = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 1000 } }], {
-      compress: 0.6,
-      format: ImageManipulator.SaveFormat.JPEG,
-    });
+    const result = await ImageManipulator.manipulateAsync(
+      uri,
+      [
+        // { resize: { width: 1000 } },
+        // { crop: { originX: 0, originY: 0, width: 1000, height: 1333 } }, // → 3:4 або 3:5
+      ],
+      {
+        compress: 0.6,
+        format: ImageManipulator.SaveFormat.JPEG,
+      }
+    );
     return result.uri;
   };
+  
 
   /**
    *
@@ -149,30 +158,38 @@ function ReferenceImageScreen() {
    * @returns {Promise<void>}
    */
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: false,
-      aspect: [4, 3],
-      quality: 0.5,
-    });
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: false,
+        aspect: [3, 4],
+        quality: 0.5,
+      });
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      const asset = result.assets[0];
-      let uri = asset.uri;
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        let uri = asset.uri;
 
-      if (Platform.OS === 'ios' && uri.startsWith('ph://')) {
-        const assetInfo = await MediaLibrary.getAssetInfoAsync(asset.uri);
-        uri = assetInfo.localUri || assetInfo.uri;
+        if (Platform.OS === 'ios' && uri.startsWith('ph://')) {
+          const assetInfo = await MediaLibrary.getAssetInfoAsync(asset.uri);
+          uri = assetInfo.localUri || assetInfo.uri;
+        }
+        // const manipulated = await ImageManipulator.manipulateAsync(
+        //   uri,
+        //   [{ resize: { width: 800 } }],
+        //   { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG }
+        // );
+        const optimizedUri = await optimizeOverlayImage(uri);
+        const optimized = await cacheOverlayImage(optimizedUri);
+        setReferenceImage(optimized);
+        setSelectedImage(uri);
+        console.log('Final referencePhotoUri:', optimized);
+
+        // navigation.navigate('Camera', { referencePhotoUri: optimized });
       }
-      const manipulated = await ImageManipulator.manipulateAsync(
-        uri,
-        [{ resize: { width: 800 } }],
-        { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG }
-      );
-      const optimizedUri = await optimizeOverlayImage(manipulated.uri);
-      const optimized = await cacheOverlayImage(optimizedUri);
-      setReferenceImage(optimized);
-      navigation.navigate('Camera', { referencePhotoUri: manipulated.uri });
+    } catch (error) {
+      console.error('Error picking image:', error);
+      alert('❌ Failed to pick image');
     }
   };
 
@@ -201,31 +218,32 @@ function ReferenceImageScreen() {
    */
   const handleConfirmSelection = async selected => {
     try {
-      let resolvedUri = null;
+      let resolvedUri;
 
-      // 📁 Local require('./template.jpg')
       if (typeof selected !== 'string') {
-        const resolved = Image.resolveAssetSource(selected);
-        resolvedUri = resolved.uri;
+        const asset = Asset.fromModule(selected);
+        await asset.downloadAsync();
+        resolvedUri = asset.localUri;
       } else {
         resolvedUri = selected;
       }
 
-      // 🧠 Якщо це ph:// (iOS), отримати localUri
-      if (Platform.OS === 'ios' && resolvedUri.startsWith('ph://')) {
-        const asset = await MediaLibrary.getAssetInfoAsync(resolvedUri);
-        if (!asset.localUri) throw new Error('Could not resolve localUri for iOS asset');
-        resolvedUri = asset.localUri;
+      // ✅ Копіюємо файл у доступну директорію
+      const fileName = resolvedUri.split('/').pop();
+      const destPath = FileSystem.cacheDirectory + fileName;
+
+      const fileExists = await FileSystem.getInfoAsync(destPath);
+      if (!fileExists.exists) {
+        await FileSystem.copyAsync({ from: resolvedUri, to: destPath });
       }
 
-      const optimizedUri = await optimizeOverlayImage(resolvedUri);
-      const cached = await cacheOverlayImage(optimizedUri);
-      navigation.navigate('Camera', { referencePhotoUri: cached });
+      console.log('[DEBUG] Copied file:', destPath);
+      navigation.navigate('Camera', { referencePhotoUri: destPath });
     } catch (error) {
       console.error('[E_CONFIRM_SELECTION]', error);
-      alert('❌ Failed to select image. Please try again or use a development build.');
+      alert('❌ Failed to select image. Please try again.');
     }
-  };
+  };  
 
   if (!hasPermission) {
     return (

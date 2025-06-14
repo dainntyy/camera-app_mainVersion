@@ -595,7 +595,7 @@ function CameraScreen({ route }) {
                 <Image
                   source={{ uri: referencePhoto }}
                   style={[styles.overlayImage, { opacity: opacity }]}
-                  resizeMode="contain"
+                  resizeMode="cover"
                 />
               )}
             </View>
@@ -773,7 +773,7 @@ const styles = StyleSheet.create({
     left: 0,
     width: '100%',
     height: '100%',
-    zIndex: 1,
+    zIndex: 10,
   },
   alignmentContainer: {
     position: 'absolute',
